@@ -17,6 +17,7 @@ class _LoginPageState extends State<LoginPage> {
   bool _pinSent = false;  // Bandera para saber si se envió el PIN
   String? _pinApp;  // Aquí guardamos el PIN que se recibe de la API
   String? _nombre;  // Guardamos el nombre del paciente
+  String? _paterno;  // Guardamos el nombre del paciente
   String? _ci;  // Guardamos el CI del paciente
 
   // URL base del endpoint de login
@@ -61,6 +62,7 @@ class _LoginPageState extends State<LoginPage> {
           setState(() {
             _pinApp = data['expedienteclinico']['pin_app'].toString();  // Guardar el PIN recibido
             _nombre = data['nombres'];  // Guardar el nombre del paciente
+            _paterno = data['paterno'];  // Guardar el primer apellido del paciente
             _ci = data['documento'];  // Guardar el CI del paciente
             loginStatus = 'PIN enviado. Por favor ingresa el PIN.';
             _pinSent = true;  // Habilitar la caja de texto para ingresar el PIN
@@ -110,6 +112,7 @@ class _LoginPageState extends State<LoginPage> {
         '/menu_paciente',
         arguments: {
           'nombre': _nombre,  // Pasar el nombre del paciente
+          'paterno': _paterno,  // Pasar el apellido del paciente
           'ci': _ci,          // Pasar el CI del paciente
         },
       );

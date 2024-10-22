@@ -8,12 +8,13 @@ class MenuPacientePage extends StatelessWidget {
 
     // Obtener el nombre y el CI del paciente
     final String nombre = args['nombre'];
+    final String paterno = args['paterno'];
     final String ci = args['ci'];
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Menú del Paciente'),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: const Color.fromARGB(255, 63, 150, 51),
       ),
       body: Stack(
         children: [
@@ -21,7 +22,7 @@ class MenuPacientePage extends StatelessWidget {
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.blue, Colors.lightBlueAccent],
+                colors: [Color.fromARGB(255, 218, 228, 248), Color.fromARGB(255, 255, 255, 255)],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -34,19 +35,20 @@ class MenuPacientePage extends StatelessWidget {
               children: [
                 // Mostrar el nombre y el CI del paciente
                 Text(
-                  'Bienvenido, $nombre',
+                  'Bienvenido, $nombre $paterno',
                   style: const TextStyle(
-                    fontSize: 24,
+                    fontSize: 10,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Colors.black,
                   ),
                 ),
+                
                 Text(
                   'CI: $ci',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.normal,
-                    color: Colors.white70,
+                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -139,7 +141,7 @@ class MenuPacientePage extends StatelessWidget {
                       ),
                       backgroundColor: const Color.fromARGB(255, 63, 150, 51),
                     ),
-                    child: const Text('Cerrar sesión', style: TextStyle(fontSize: 16)),
+                    child: const Text('Cerrar sesión', style: TextStyle(fontSize: 16, color: Colors.white70)),
                   ),
                 ),
               ],
