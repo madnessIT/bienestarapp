@@ -6,6 +6,8 @@ import 'servicios_medicos.dart';
 import 'mis_facturas.dart';
 import 'mis_atenciones_medicas.dart';
 import 'contactanos.dart';
+import 'reservar_citas.dart';
+//import 'solicitud_atencion.dart';
 void main() {
   runApp(MyApp());
 }
@@ -25,10 +27,12 @@ class MyApp extends StatelessWidget {
         '/': (context) => const LoginPage(),
         '/register_page': (context) => RegisterPage(),  // Registro Paciente
         '/menu_paciente': (context) => MenuPacientePage(),  // Ruta para el menú del paciente
+        //'/solicitud_atencion': (context) => SolicitudAtencionPage(), //Solicitud atencion
         '/servicios_medicos': (context) => ServiciosMedicosPage(),  // Define esta ruta
         '/mis_facturas': (context) => MisFacturasPage(),  // Define esta ruta
         '/mis_atenciones_medicas': (context) => MisAtencionesMedicasPage(),  // Define esta ruta
         '/contactanos': (context) => ContactanosPage(),  // Define esta ruta
+        '/reservar_citas': (context) => ReservarCitasPage(),  // Reservar y pagar citas
       },
     );
   }

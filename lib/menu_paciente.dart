@@ -8,13 +8,12 @@ class MenuPacientePage extends StatelessWidget {
 
     // Obtener el nombre y el CI del paciente
     final String nombre = args['nombre'];
-    final String paterno = args['paterno'];
     final String ci = args['ci'];
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Menú del Paciente'),
-        backgroundColor: const Color.fromARGB(255, 63, 150, 51),
+        backgroundColor: Colors.blueAccent,
       ),
       body: Stack(
         children: [
@@ -22,7 +21,7 @@ class MenuPacientePage extends StatelessWidget {
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color.fromARGB(255, 218, 228, 248), Color.fromARGB(255, 255, 255, 255)],
+                colors: [Colors.blue, Colors.lightBlueAccent],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -35,20 +34,19 @@ class MenuPacientePage extends StatelessWidget {
               children: [
                 // Mostrar el nombre y el CI del paciente
                 Text(
-                  'Bienvenido, $nombre $paterno',
+                  'Bienvenido, $nombre',
                   style: const TextStyle(
-                    fontSize: 10,
+                    fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: Colors.white,
                   ),
                 ),
-                
                 Text(
                   'CI: $ci',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.normal,
-                    color: Colors.black,
+                    color: Colors.white70,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -68,8 +66,8 @@ class MenuPacientePage extends StatelessWidget {
                           title: const Text('Servicios médicos'),
                           trailing: const Icon(Icons.arrow_forward_ios),
                           onTap: () {
-                            // Acción para Servicios Médicos
-                            Navigator.pushNamed(context, '/servicios_medicos');
+                            // Redirigir a la página de solicitud de atención médica
+                            Navigator.pushNamed(context, '/mis_atenciones_medicas');
                           },
                         ),
                       ),
@@ -139,9 +137,9 @@ class MenuPacientePage extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      backgroundColor: const Color.fromARGB(255, 63, 150, 51),
+                      backgroundColor: Colors.redAccent,
                     ),
-                    child: const Text('Cerrar sesión', style: TextStyle(fontSize: 16, color: Colors.white70)),
+                    child: const Text('Cerrar sesión', style: TextStyle(fontSize: 16)),
                   ),
                 ),
               ],
