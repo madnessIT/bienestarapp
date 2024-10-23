@@ -15,9 +15,10 @@ class _LoginPageState extends State<LoginPage> {
   String? loginStatus;
   bool _isLoading = false;
   bool _pinSent = false;  // Bandera para saber si se envió el PIN
+  bool _showRegisterButton = false;  // Bandera para mostrar el botón de registro
   String? _pinApp;  // Aquí guardamos el PIN que se recibe de la API
   String? _nombre;  // Guardamos el nombre del paciente
-  String? _paterno;  // Guardamos el nombre del paciente
+  String? _paterno;  // Guardamos el apellido del paciente
   String? _ci;  // Guardamos el CI del paciente
 
   // URL base del endpoint de login
@@ -62,27 +63,32 @@ class _LoginPageState extends State<LoginPage> {
           setState(() {
             _pinApp = data['expedienteclinico']['pin_app'].toString();  // Guardar el PIN recibido
             _nombre = data['nombres'];  // Guardar el nombre del paciente
-            _paterno = data['paterno'];  // Guardar el primer apellido del paciente
+            _paterno = data['paterno'];  // Guardar el apellido del paciente
             _ci = data['documento'];  // Guardar el CI del paciente
             loginStatus = 'PIN enviado. Por favor ingresa el PIN.';
             _pinSent = true;  // Habilitar la caja de texto para ingresar el PIN
             _isLoading = false;
+            _showRegisterButton = false;  // Ocultar botón de registro si se encontró el paciente
           });
         } else {
           setState(() {
             loginStatus = 'Error: No se recibió el PIN.';
             _isLoading = false;
+            _showRegisterButton = false;  // Ocultar botón de registro
           });
         }
-      } else if (response.statusCode == 404) {
+      } else if (response.statusCode == 302) {
+        // Si el paciente no es encontrado, mostrar el botón para registrar
         setState(() {
           loginStatus = 'Paciente no encontrado. ¿Deseas registrarte?';
           _isLoading = false;
+          _showRegisterButton = true;  // Mostrar botón de registro
         });
       } else {
         setState(() {
           loginStatus = 'Error en el login. Código: ${response.statusCode}';
           _isLoading = false;
+          _showRegisterButton = false;  // Ocultar botón de registro
         });
       }
     } catch (e) {
@@ -90,6 +96,7 @@ class _LoginPageState extends State<LoginPage> {
       setState(() {
         loginStatus = 'Error en la conexión';
         _isLoading = false;
+        _showRegisterButton = false;  // Ocultar botón de registro
       });
     }
   }
@@ -154,13 +161,13 @@ class _LoginPageState extends State<LoginPage> {
                         color: Colors.grey.withOpacity(0.5),
                         spreadRadius: 5,
                         blurRadius: 7,
-                        offset: const Offset(0, 3), // Cambia la posición de la sombra
+                        offset: Offset(0, 3), // Cambia la posición de la sombra
                       ),
                     ],
                   ),
                   child: Column(
                     children: [
-                      const Text(
+                      Text(
                         'Iniciar Sesión',
                         style: TextStyle(
                           fontSize: 24,
@@ -180,7 +187,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 20),
                       _isLoading
-                          ? const CircularProgressIndicator()
+                          ? CircularProgressIndicator()
                           : ElevatedButton(
                               onPressed: () {
                                 loginPaciente(_documentoController.text);
@@ -191,7 +198,7 @@ class _LoginPageState extends State<LoginPage> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                textStyle: const TextStyle(
+                                textStyle: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -223,12 +230,35 @@ class _LoginPageState extends State<LoginPage> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            textStyle: const TextStyle(
+                            textStyle: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           child: const Text("Confirmar PIN"),
+                        ),
+                      ],
+
+                      // Mostrar el botón de registro si el paciente no es encontrado
+                      if (_showRegisterButton) ...[
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () {
+                            // Navegar a la pantalla de registro de pacientes
+                            Navigator.pushNamed(context, '/register_page');
+                          },
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 50, vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            backgroundColor: Colors.green,  // Color verde para registro
+                          ),
+                          child: const Text(
+                            "Registrar Paciente",
+                            style: TextStyle(fontSize: 16),
+                          ),
                         ),
                       ],
                     ],

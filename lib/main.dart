@@ -23,6 +23,7 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const LoginPage(),
+        '/register_page': (context) => RegisterPage(),  // Registro Paciente
         '/menu_paciente': (context) => MenuPacientePage(),  // Ruta para el menú del paciente
         '/servicios_medicos': (context) => ServiciosMedicosPage(),  // Define esta ruta
         '/mis_facturas': (context) => MisFacturasPage(),  // Define esta ruta
