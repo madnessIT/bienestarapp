@@ -7,9 +7,10 @@ import 'mis_facturas.dart';
 import 'mis_atenciones_medicas.dart';
 import 'contactanos.dart';
 import 'reservar_citas.dart';
+import 'servicio_atencion.dart';
 //import 'solicitud_atencion.dart';
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -25,14 +26,15 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const LoginPage(),
-        '/register_page': (context) => RegisterPage(),  // Registro Paciente
-        '/menu_paciente': (context) => MenuPacientePage(),  // Ruta para el menú del paciente
+        '/register_page': (context) => const RegisterPage(),  // Registro Paciente
+        '/menu_paciente': (context) => const MenuPacientePage(),  // Ruta para el menú del paciente
         //'/solicitud_atencion': (context) => SolicitudAtencionPage(), //Solicitud atencion
-        '/servicios_medicos': (context) => ServiciosMedicosPage(),  // Define esta ruta
-        '/mis_facturas': (context) => MisFacturasPage(),  // Define esta ruta
-        '/mis_atenciones_medicas': (context) => MisAtencionesMedicasPage(),  // Define esta ruta
-        '/contactanos': (context) => ContactanosPage(),  // Define esta ruta
-        '/reservar_citas': (context) => ReservarCitasPage(),  // Reservar y pagar citas
+        '/servicios_medicos': (context) => const ServiciosMedicosPage(),  // Define esta ruta
+        '/mis_facturas': (context) => const MisFacturasPage(),  // Define esta ruta
+        '/mis_atenciones_medicas': (context) => const MisAtencionesMedicasPage(),  // Define esta ruta
+        '/contactanos': (context) => const ContactanosPage(),  // Define esta ruta
+        '/reservar_citas': (context) => const ReservarCitasPage(),  // Reservar y pagar citas
+        '/servicio_atencion': (context) => const ServiciosAtencionPage(),//Seleccion Servicio Atencion
       },
     );
   }

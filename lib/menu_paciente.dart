@@ -1,44 +1,53 @@
 import 'package:flutter/material.dart';
 
 class MenuPacientePage extends StatelessWidget {
+  const MenuPacientePage({super.key});
+
   @override
   Widget build(BuildContext context) {
     // Recibir los argumentos pasados desde login_page.dart
     final Map<String, dynamic> args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
 
     // Obtener el nombre y el CI del paciente
-    final String nombre = args['nombre'];
+    final String? nombre = args['nombre'];
+    final String? paterno = args ['paterno'];
+    final String? materno = args ['materno'];
     final String ci = args['ci'];
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Menú del Paciente'),
-        backgroundColor: Colors.blueAccent,
+        title: const Text(
+          'Menú del Paciente',
+          style: TextStyle(
+            color: Colors.white,  // Cambiar el color del texto a blanco
+            fontWeight: FontWeight.bold, // Fuente en negrita
+          ),
+        ),
+        backgroundColor: const Color.fromARGB(255, 1, 179, 45),  // Color de fondo del AppBar
       ),
       body: Stack(
         children: [
-          // Fondo con color
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.blue, Colors.lightBlueAccent],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-          ),
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Agregar logo en la parte superior
+                Center(
+                  child: Image.asset(
+                    'assets/images/logo.png',  // Ruta a tu logo
+                    height: 120,  // Tamaño del logo
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                const SizedBox(height: 20),
                 // Mostrar el nombre y el CI del paciente
                 Text(
-                  'Bienvenido, $nombre',
+                  'Bienvenido, $nombre $paterno $materno',
                   style: const TextStyle(
-                    fontSize: 24,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Colors.black,
                   ),
                 ),
                 Text(
@@ -46,7 +55,7 @@ class MenuPacientePage extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.normal,
-                    color: Colors.white70,
+                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -96,7 +105,7 @@ class MenuPacientePage extends StatelessWidget {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: ListTile(
-                          leading: const Icon(Icons.medical_services, color: Colors.redAccent),
+                          leading: const Icon(Icons.medical_services, color: Color.fromARGB(255, 1, 179, 45)),
                           title: const Text('Mis atenciones médicas'),
                           trailing: const Icon(Icons.arrow_forward_ios),
                           onTap: () {
@@ -137,9 +146,11 @@ class MenuPacientePage extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      backgroundColor: Colors.redAccent,
+                      backgroundColor: const Color.fromARGB(255, 1, 179, 45),
                     ),
-                    child: const Text('Cerrar sesión', style: TextStyle(fontSize: 16)),
+                    child: const Text('Cerrar sesión', style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white)),
                   ),
                 ),
               ],

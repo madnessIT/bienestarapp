@@ -3,13 +3,15 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ReservarCitasPage extends StatefulWidget {
+  const ReservarCitasPage({super.key});
+
   @override
   _ReservarCitasPageState createState() => _ReservarCitasPageState();
 }
 
 class _ReservarCitasPageState extends State<ReservarCitasPage> {
   DateTime? _selectedDate;
-  String? _selectedRegional;
+  String? _selectedRegionalId; // Guardar el ID del departamento seleccionado
   bool _isLoadingRegional = true;
   List<dynamic> regionales = [];
 
@@ -43,6 +45,7 @@ class _ReservarCitasPageState extends State<ReservarCitasPage> {
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
         setState(() {
+          // Filtrar solo departamentos activos
           regionales = data.where((regional) => regional['activo'] == true).toList();
           _isLoadingRegional = false;
         });
@@ -60,20 +63,19 @@ class _ReservarCitasPageState extends State<ReservarCitasPage> {
     }
   }
 
-  // Navegar a la página de servicios clínicos con fecha y regional seleccionada
+  // Navegar a la página de servicios clínicos con fecha y ID de departamento seleccionado
   void _goToServiciosClinica() {
-    if (_selectedDate != null && _selectedRegional != null) {
-      Navigator.pushNamed(
-        context,
-        '/servicios_clinica',
-        arguments: {
-          'fecha': _selectedDate,
-          'regional': _selectedRegional,
-        },
-      );
-    }
+  if (_selectedDate != null && _selectedRegionalId != null) {
+    Navigator.pushNamed(
+      context,
+      '/servicio_atencion',
+      arguments: {
+        'fecha': _selectedDate!.toIso8601String().split('T')[0], // Solo la fecha
+        'departamento_id': _selectedRegionalId, // Enviar el ID de la regional
+      },
+    );
   }
-
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -106,20 +108,20 @@ class _ReservarCitasPageState extends State<ReservarCitasPage> {
             ),
             const SizedBox(height: 10),
             _isLoadingRegional
-                ? CircularProgressIndicator()
+                ? const CircularProgressIndicator()
                 : DropdownButton<String>(
-                    value: _selectedRegional,
+                    value: _selectedRegionalId, // El valor seleccionado es el ID
                     hint: const Text('Seleccione la Regional'),
                     onChanged: (String? newValue) {
                       setState(() {
-                        _selectedRegional = newValue;
+                        _selectedRegionalId = newValue; // Guardar el ID de la regional seleccionada
                       });
                     },
                     items: regionales.isNotEmpty
                         ? regionales.map((regional) {
                             return DropdownMenuItem<String>(
-                              value: regional['nombre'],
-                              child: Text(regional['nombre']),
+                              value: regional['id'].toString(), // Usar el ID como valor
+                              child: Text(regional['nombre']), // Mostrar el nombre
                             );
                           }).toList()
                         : [],
@@ -127,7 +129,7 @@ class _ReservarCitasPageState extends State<ReservarCitasPage> {
             const SizedBox(height: 30),
             Center(
               child: ElevatedButton(
-                onPressed: (_selectedDate != null && _selectedRegional != null)
+                onPressed: (_selectedDate != null && _selectedRegionalId != null)
                     ? _goToServiciosClinica
                     : null, // Desactiva el botón si no hay fecha y regional seleccionada
                 child: const Text('Continuar'),
