@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'fecha_provider.dart';
 import 'login_page.dart';
 import 'register_page.dart';
 import 'menu_paciente.dart';
@@ -9,14 +11,20 @@ import 'contactanos.dart';
 import 'reservar_citas.dart';
 import 'servicio_atencion.dart';
 import 'sucursal_atencion.dart';
+import 'medico_atencion.dart';
 
-void main() {
-  runApp(const MyApp());
-}
-
+void main()  {
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => FechaProvider()),
+      ],
+      child: MyApp(),
+    ),
+  );
+} 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
+  //const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -35,20 +43,22 @@ class MyApp extends StatelessWidget {
         '/contactanos': (context) => const ContactanosPage(),
         '/reservar_citas': (context) => const ReservarCitasPage(),
         '/sucursal_atencion': (context) => const SucursalAtencionPage(),
+        '/servicio_atencion': (context) => const ServiciosAtencionPage(),
+        '/medico_atencion': (context) => const MedicoAtencionPage (),
       },
-      onGenerateRoute: (settings) {
-        if (settings.name == '/servicio_atencion') {
-          final args = settings.arguments as Map<String, dynamic>;
+     // onGenerateRoute: (settings) {
+       // if (settings.name == '/servicio_atencion') {
+          //final args = settings.arguments as Map<String, dynamic>;
 
-          return MaterialPageRoute(
-            builder: (context) => ServiciosAtencionPage(
-              fecha: args['fecha'],
-              departamentoId: args['departamento_id'],
-            ),
-          );
-        }
-        return null;
-      },
+        //  return MaterialPageRoute(
+           // builder: (context) => ServiciosAtencionPage(
+           //   fecha: args['fecha'],
+          //    departamentoId: args['departamento_id'],
+          //  ),
+        //  );
+      //  }
+      //  return null;
+     // },
     );
   }
 }

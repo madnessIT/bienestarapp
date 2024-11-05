@@ -1,12 +1,19 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
-class FechaProvider with ChangeNotifier {
-  DateTime? _fecha;
+class FechaProvider extends ChangeNotifier {
+  String? _fecha;
+  String? _departamentoId;
 
-  DateTime? get fecha => _fecha;
+  String? get fecha => _fecha;
+  String? get departamentoId => _departamentoId;
 
-  void setFecha(DateTime nuevaFecha) {
+  void setFecha(String nuevaFecha) {
     _fecha = nuevaFecha;
-    notifyListeners(); // Notifica a los widgets que están escuchando cuando cambia la fecha
+    notifyListeners();
+  }
+
+  void setDepartamentoId(String nuevoDepartamentoId) {
+    _departamentoId = nuevoDepartamentoId;
+    notifyListeners();
   }
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:provider/provider.dart';
+import 'fecha_provider.dart';
 
 class ReservarCitasPage extends StatefulWidget {
   const ReservarCitasPage({super.key});
@@ -31,6 +33,7 @@ class _ReservarCitasPageState extends State<ReservarCitasPage> {
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
+        Provider.of<FechaProvider>(context, listen: false).setFecha(picked.toIso8601String().split('T')[0]);
       });
     }
   }
@@ -131,8 +134,14 @@ class _ReservarCitasPageState extends State<ReservarCitasPage> {
             value: _selectedRegionalId,
             hint: const Text('Seleccione la Regional'),
             onChanged: (String? newValue) {
-              setState(() => _selectedRegionalId = newValue);
-            },
+  setState(() {
+    _selectedRegionalId = newValue;
+    if (newValue != null) {
+      Provider.of<FechaProvider>(context, listen: false).setDepartamentoId(newValue);
+    }
+  });
+},
+
             items: regionales.map((regional) {
               return DropdownMenuItem<String>(
                 value: regional['id'].toString(),
