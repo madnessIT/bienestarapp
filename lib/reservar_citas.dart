@@ -27,20 +27,20 @@ class _ReservarCitasPageState extends State<ReservarCitasPage> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime.now(), // Solo fechas futuras
+      firstDate: DateTime.now(),
       lastDate: DateTime(2101),
     );
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
-        Provider.of<FechaProvider>(context, listen: false).setFecha(picked.toIso8601String().split('T')[0]);
+        Provider.of<FechaProvider>(context, listen: false)
+            .setFecha(picked.toIso8601String().split('T')[0]);
       });
     }
   }
 
   Future<void> _fetchRegionales() async {
     var url = Uri.parse('http://test.api.movil.cies.org.bo/administracion/departamentos/');
-
     try {
       var response = await http.get(url);
       if (response.statusCode == 200) {
@@ -80,68 +80,109 @@ class _ReservarCitasPageState extends State<ReservarCitasPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Reservar Cita Médica'),
-        backgroundColor: Colors.blueAccent,
+        title: const Text(
+          'Reservar Cita Medica',
+          style: TextStyle(
+            color: Colors.white,  // Cambiar el color del texto a blanco
+            fontWeight: FontWeight.bold, // Fuente en negrita
+          ),
+        ),
+        backgroundColor: const Color.fromARGB(255, 1, 179, 45),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Introducir Fecha:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            _buildDateButton(),
-            const SizedBox(height: 20),
-            const Text(
-              'Seleccione una Regional:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            _buildRegionalDropdown(),
-            const SizedBox(height: 30),
-            Center(
-              child: ElevatedButton(
-                onPressed: (_selectedDate != null && _selectedRegionalId != null)
-                    ? _goToServiciosClinica
-                    : null,
-                child: const Text('Continuar'),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Logo en la parte superior
+              Center(
+                child: Image.asset(
+                  'assets/images/logo.png',  // Ruta de tu logo en assets
+                  height: 100,
+                  fit: BoxFit.contain,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 20),
+              const Text(
+                'Introducir Fecha:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              _buildDateButton(),
+              const SizedBox(height: 20),
+              const Text(
+                'Seleccione una Regional:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              _buildRegionalDropdown(),
+              const SizedBox(height: 30),
+              Center(
+                child: ElevatedButton(
+                  onPressed: (_selectedDate != null && _selectedRegionalId != null)
+                      ? _goToServiciosClinica
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 1, 179, 45),
+                    padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    'Continuar',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildDateButton() {
-    return ElevatedButton(
+    return ElevatedButton.icon(
       onPressed: () => _selectDate(context),
-      child: Text(
+      icon: const Icon(Icons.calendar_today, color: Colors.white),
+      label: Text(
         _selectedDate == null
             ? 'Seleccione la Fecha'
             : 'Fecha Seleccionada: ${_selectedDate!.toString().split(' ')[0]}',
+        style: const TextStyle(color: Colors.white, fontSize: 16),
+      ),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color.fromARGB(255, 1, 179, 45),
+        padding: const EdgeInsets.symmetric(vertical: 15),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
       ),
     );
   }
 
   Widget _buildRegionalDropdown() {
     return _isLoadingRegional
-        ? const CircularProgressIndicator()
-        : DropdownButton<String>(
+        ? const Center(child: CircularProgressIndicator())
+        : DropdownButtonFormField<String>(
             value: _selectedRegionalId,
+            decoration: InputDecoration(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
             hint: const Text('Seleccione la Regional'),
             onChanged: (String? newValue) {
-  setState(() {
-    _selectedRegionalId = newValue;
-    if (newValue != null) {
-      Provider.of<FechaProvider>(context, listen: false).setDepartamentoId(newValue);
-    }
-  });
-},
-
+              setState(() {
+                _selectedRegionalId = newValue;
+                if (newValue != null) {
+                  Provider.of<FechaProvider>(context, listen: false).setDepartamentoId(newValue);
+                }
+              });
+            },
             items: regionales.map((regional) {
               return DropdownMenuItem<String>(
                 value: regional['id'].toString(),

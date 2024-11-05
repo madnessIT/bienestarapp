@@ -13,9 +13,11 @@ class ServiciosAtencionPage extends StatefulWidget {
 
 class _ServiciosAtencionPageState extends State<ServiciosAtencionPage> {
   List<dynamic> servicios = [];
+  List<dynamic> filteredServicios = [];
   bool _isLoading = true;
   late String fecha;
   late String departamentoId;
+  String searchQuery = '';
 
   @override
   void initState() {
@@ -33,30 +35,107 @@ class _ServiciosAtencionPageState extends State<ServiciosAtencionPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Servicios Disponibles'),
+        title: const Text(
+          'Servicios Disponibles',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: const Color.fromARGB(255, 1, 179, 45),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: servicios.length,
-              itemBuilder: (context, index) {
-                var servicio = servicios[index];
-                var especialidades = servicio['especialidades'] as List<dynamic>;
-
-                return ListTile(
-                  title: Text(servicio['nombre']),
-                  subtitle: Text(servicio['descripcion'] ?? 'Sin descripción'),
-                  onTap: () {
-                    if (especialidades.isNotEmpty) {
-                      String especialidadId = especialidades[0]['id'].toString();
-                      _onEspecialidadSelected(especialidadId);
-                    } else {
-                      print("No hay especialidades disponibles para este servicio");
-                    }
-                  },
-                );
+      body: Column(
+        children: [
+          // Logo y detalles en la parte superior
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16.0),
+            child: Column(
+              children: [
+                Center(
+                  child: Image.asset(
+                    'assets/images/logo.png', // Asegúrate de que la ruta sea correcta
+                    height: 80,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Fecha de Atención: $fecha',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+                Text(
+                  'Regional: $departamentoId',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+              ],
+            ),
+          ),
+          // Buscador
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Buscar servicio...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  searchQuery = value.toLowerCase();
+                  filteredServicios = servicios.where((servicio) {
+                    final nombre = servicio['nombre']?.toLowerCase() ?? '';
+                    return nombre.contains(searchQuery);
+                  }).toList();
+                });
               },
             ),
+          ),
+          // Lista de servicios
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: ListView.builder(
+                      itemCount: filteredServicios.length,
+                      itemBuilder: (context, index) {
+                        var servicio = filteredServicios[index];
+                        var especialidades = servicio['especialidades'] as List<dynamic>;
+
+                        return Card(
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                            title: Text(
+                              servicio['nombre'],
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            subtitle: Text(
+                              servicio['descripcion'] ?? 'Sin descripción',
+                              style: const TextStyle(color: Colors.grey),
+                            ),
+                            trailing: const Icon(Icons.arrow_forward_ios, color: Colors.blueAccent),
+                            onTap: () {
+                              if (especialidades.isNotEmpty) {
+                                String especialidadId = especialidades[0]['id'].toString();
+                                _onEspecialidadSelected(especialidadId);
+                              } else {
+                                print("No hay especialidades disponibles para este servicio");
+                              }
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -72,6 +151,7 @@ class _ServiciosAtencionPageState extends State<ServiciosAtencionPage> {
       if (response.statusCode == 200) {
         setState(() {
           servicios = jsonDecode(response.body);
+          filteredServicios = servicios;
           _isLoading = false;
         });
       } else {

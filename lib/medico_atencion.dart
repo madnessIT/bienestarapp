@@ -39,21 +39,44 @@ class MedicoAtencionPage extends StatelessWidget {
                       var medicoData = medicos[index];
                       var medico = medicoData['medico'] ?? {};
                       var persona = medico['persona'] ?? {};
+                      var agendaTurnos = medicoData['agenda_turnos'] as List<dynamic>;
 
-                      // Obtener los detalles del horario
-                      String horaInicio = medicoData['hora_inicio'] ?? 'No disponible';
-                      String horaFin = medicoData['hora_fin'] ?? 'No disponible';
+                      // Detalles del horario y médico
                       String descripcion = medicoData['descripcion'] ?? 'Sin descripción';
+                      String horaInicio = medicoData['hora_inicio'] ?? 'Hora inicio no disponible';
+                      String horaFin = medicoData['hora_fin'] ?? 'Hora fin no disponible';
+                      String nombreCompleto = '${persona['nombres'] ?? 'Nombre no disponible'} '
+                          '${persona['paterno'] ?? ''} ${persona['materno'] ?? ''}';
 
-                      return ListTile(
-                        title: Text(
-                          '${persona['nombres'] ?? 'Nombre no disponible'} '
-                          '${persona['paterno'] ?? ''} '
-                          '${persona['materno'] ?? ''}',
-                        ),
-                        subtitle: Text(
-                          'Horario: $horaInicio - $horaFin\nDescripción: $descripcion\n'
-                          'Días disponibles: ${_getDiasDisponibles(medicoData)}',
+                      return Card(
+                        elevation: 4,
+                        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                        child: ExpansionTile(
+                          title: Text(nombreCompleto),
+                          subtitle: Text('Horario: $horaInicio - $horaFin\nDescripción: $descripcion'),
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 8),
+                              child: Text(
+                                'Turnos Disponibles:',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            ...agendaTurnos.map((turno) {
+                              String turnoInicio = turno['hora_inicio'] ?? 'Inicio no disponible';
+                              String turnoFin = turno['hora_fin'] ?? 'Fin no disponible';
+                              String turnoFecha = turno['fecha'] ?? 'Fecha no disponible';
+
+                              return ListTile(
+                                title: Text('Fecha: $turnoFecha'),
+                                subtitle: Text('De: $turnoInicio a $turnoFin'),
+                                onTap: () {
+                                  // Maneja la selección del turno aquí
+                                  print("Turno seleccionado: $turnoInicio - $turnoFin");
+                                },
+                              );
+                            }),
+                          ],
                         ),
                       );
                     },
@@ -62,19 +85,5 @@ class MedicoAtencionPage extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  // Función para obtener los días disponibles del médico
-  String _getDiasDisponibles(Map<String, dynamic> medicoData) {
-    List<String> dias = [];
-    if (medicoData['lunes'] == true) dias.add('Lunes');
-    if (medicoData['martes'] == true) dias.add('Martes');
-    if (medicoData['miercoles'] == true) dias.add('Miércoles');
-    if (medicoData['jueves'] == true) dias.add('Jueves');
-    if (medicoData['viernes'] == true) dias.add('Viernes');
-    if (medicoData['sabado'] == true) dias.add('Sábado');
-    if (medicoData['domingo'] == true) dias.add('Domingo');
-
-    return dias.isNotEmpty ? dias.join(', ') : 'No disponible';
   }
 }
