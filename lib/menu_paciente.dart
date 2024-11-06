@@ -10,8 +10,8 @@ class MenuPacientePage extends StatelessWidget {
 
     // Obtener el nombre y el CI del paciente
     final String? nombre = args['nombre'];
-    final String? paterno = args ['paterno'];
-    final String? materno = args ['materno'];
+    final String? paterno = args['paterno'];
+    final String? materno = args['materno'];
     final String ci = args['ci'];
 
     return Scaffold(
@@ -19,11 +19,11 @@ class MenuPacientePage extends StatelessWidget {
         title: const Text(
           'Menú del Paciente',
           style: TextStyle(
-            color: Colors.white,  // Cambiar el color del texto a blanco
-            fontWeight: FontWeight.bold, // Fuente en negrita
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: const Color.fromARGB(255, 1, 179, 45),  // Color de fondo del AppBar
+        backgroundColor: const Color.fromARGB(255, 1, 179, 45),
       ),
       body: Stack(
         children: [
@@ -35,8 +35,8 @@ class MenuPacientePage extends StatelessWidget {
                 // Agregar logo en la parte superior
                 Center(
                   child: Image.asset(
-                    'assets/images/logo.png',  // Ruta a tu logo
-                    height: 120,  // Tamaño del logo
+                    'assets/images/logo.png', // Ruta a tu logo
+                    height: 120,
                     fit: BoxFit.contain,
                   ),
                 ),
@@ -54,92 +54,50 @@ class MenuPacientePage extends StatelessWidget {
                   'CI: $ci',
                   style: const TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.normal,
                     color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 20),
-
                 // Opciones del menú
                 Expanded(
                   child: ListView(
                     children: [
-                      Card(
-                        color: Colors.white,
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: ListTile(
-                          leading: const Icon(Icons.local_hospital, color: Colors.blue),
-                          title: const Text('Servicios médicos'),
-                          trailing: const Icon(Icons.arrow_forward_ios),
-                          onTap: () {
-                            // Redirigir a la página de solicitud de atención médica
-                            Navigator.pushNamed(context, '/mis_atenciones_medicas');
-                          },
-                        ),
+                      _buildMenuOption(
+                        context,
+                        icon: Icons.local_hospital,
+                        title: 'Servicios médicos',
+                        color: Colors.blue,
+                        routeName: '/mis_atenciones_medicas',
                       ),
-                      const SizedBox(height: 10),
-                      Card(
-                        color: Colors.white,
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: ListTile(
-                          leading: const Icon(Icons.receipt, color: Colors.green),
-                          title: const Text('Mis facturas'),
-                          trailing: const Icon(Icons.arrow_forward_ios),
-                          onTap: () {
-                            // Acción para Mis Facturas
-                            Navigator.pushNamed(context, '/mis_facturas');
-                          },
-                        ),
+                      _buildMenuOption(
+                        context,
+                        icon: Icons.receipt,
+                        title: 'Mis facturas',
+                        color: Colors.green,
+                        routeName: '/mis_facturas',
                       ),
-                      const SizedBox(height: 10),
-                      Card(
-                        color: Colors.white,
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: ListTile(
-                          leading: const Icon(Icons.medical_services, color: Color.fromARGB(255, 1, 179, 45)),
-                          title: const Text('Mis atenciones médicas'),
-                          trailing: const Icon(Icons.arrow_forward_ios),
-                          onTap: () {
-                            // Acción para Mis Atenciones Médicas
-                            Navigator.pushNamed(context, '/mis_atenciones_medicas');
-                          },
-                        ),
+                      _buildMenuOption(
+                        context,
+                        icon: Icons.medical_services,
+                        title: 'Mis atenciones médicas',
+                        color: const Color.fromARGB(255, 1, 179, 45),
+                        routeName: '/mis_atenciones_medicas',
                       ),
-                      const SizedBox(height: 10),
-                      Card(
-                        color: Colors.white,
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: ListTile(
-                          leading: const Icon(Icons.contact_phone, color: Colors.orangeAccent),
-                          title: const Text('Contáctanos'),
-                          trailing: const Icon(Icons.arrow_forward_ios),
-                          onTap: () {
-                            // Acción para Contactarnos
-                            Navigator.pushNamed(context, '/contactanos');
-                          },
-                        ),
+                      _buildMenuOption(
+                        context,
+                        icon: Icons.contact_phone,
+                        title: 'Contáctanos',
+                        color: Colors.orangeAccent,
+                        routeName: '/contactanos',
                       ),
                     ],
                   ),
                 ),
-
                 // Botón para cerrar sesión
                 Center(
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.pop(context);  // Regresar al login
+                      Navigator.pop(context); // Regresar al login
                     },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
@@ -148,15 +106,57 @@ class MenuPacientePage extends StatelessWidget {
                       ),
                       backgroundColor: const Color.fromARGB(255, 1, 179, 45),
                     ),
-                    child: const Text('Cerrar sesión', style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white)),
+                    child: const Text(
+                      'Cerrar sesión',
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    ),
                   ),
                 ),
               ],
             ),
           ),
         ],
+      ),
+      // Barra de navegación en la parte inferior
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Inicio',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.edit),
+            label: 'Modificar Perfil',
+          ),
+        ],
+        selectedItemColor: const Color.fromARGB(255, 1, 179, 45),
+        onTap: (index) {
+          if (index == 1) {
+            Navigator.pushNamed(context, '/modify_page'); // Dirigirse a la página de modificación
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildMenuOption(BuildContext context,
+      {required IconData icon,
+      required String title,
+      required Color color,
+      required String routeName}) {
+    return Card(
+      color: Colors.white,
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: ListTile(
+        leading: Icon(icon, color: color),
+        title: Text(title),
+        trailing: const Icon(Icons.arrow_forward_ios),
+        onTap: () {
+          Navigator.pushNamed(context, routeName);
+        },
       ),
     );
   }

@@ -12,6 +12,7 @@ import 'reservar_citas.dart';
 import 'servicio_atencion.dart';
 import 'sucursal_atencion.dart';
 import 'medico_atencion.dart';
+import 'modify_page.dart';
 
 void main()  {
   runApp(
@@ -47,6 +48,7 @@ class MyApp extends StatelessWidget {
         '/sucursal_atencion': (context) => const SucursalAtencionPage(),
         '/servicio_atencion': (context) => const ServiciosAtencionPage(),
         '/medico_atencion': (context) => const MedicoAtencionPage (),
+        '/modify_page':(context) => const ModifyPage (),
       },
      // onGenerateRoute: (settings) {
        // if (settings.name == '/servicio_atencion') {
