@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'fecha_provider.dart';
+import 'expediente_provider.dart';
 import 'login_page.dart';
 import 'register_page.dart';
 import 'menu_paciente.dart';
@@ -13,14 +14,19 @@ import 'servicio_atencion.dart';
 import 'sucursal_atencion.dart';
 import 'medico_atencion.dart';
 import 'modify_page.dart';
+import '/servicios_medicos/recetas.dart';
+import '/servicios_medicos/signos_vitales.dart';
+import '/servicios_medicos/laboratorios.dart';
+import '/servicios_medicos/captura_hibrida.dart';
 
 void main()  {
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => FechaProvider()),
+        ChangeNotifierProvider(create: (_) => ExpedienteProvider()),
       ],
-      child: MyApp(),
+      child: const MyApp(),
     ),
   );
 } 
@@ -49,20 +55,13 @@ class MyApp extends StatelessWidget {
         '/servicio_atencion': (context) => const ServiciosAtencionPage(),
         '/medico_atencion': (context) => const MedicoAtencionPage (),
         '/modify_page':(context) => const ModifyPage (),
-      },
-     // onGenerateRoute: (settings) {
-       // if (settings.name == '/servicio_atencion') {
-          //final args = settings.arguments as Map<String, dynamic>;
+        '/servicios_medicos/recetas': (context) => const RecetasPage(),
+        '/servicios_medicos/signos_vitales': (context) => const SignosVitalesPage(),
+        '/servicios_medicos/laboratorios': (context) => const LaboratoriosPage(),
+        '/captura_hibrida': (context) => const CapturaHibridaHistorialPage(),
 
-        //  return MaterialPageRoute(
-           // builder: (context) => ServiciosAtencionPage(
-           //   fecha: args['fecha'],
-          //    departamentoId: args['departamento_id'],
-          //  ),
-        //  );
-      //  }
-      //  return null;
-     // },
+      },
+     
     );
   }
 }

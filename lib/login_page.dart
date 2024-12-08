@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'expediente_provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -11,20 +13,19 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _documentoController = TextEditingController();
-  final TextEditingController _pinController = TextEditingController();  // Controlador para el PIN
+  final TextEditingController _pinController = TextEditingController();
   String? loginStatus;
   bool _isLoading = false;
-  bool _pinSent = false;  // Bandera para saber si se envió el PIN
-  bool _showRegisterButton = false;  // Bandera para mostrar el botón de registro
-  String? _pinApp;  // Aquí guardamos el PIN que se recibe de la API
-  String? _nombre;  // Guardamos el nombre del paciente
-  String? _paterno;  // Guardamos el apellido del paciente
-  String? _ci;  // Guardamos el CI del paciente
+  bool _pinSent = false;
+  bool _showRegisterButton = false;
+  String? _pinApp;
+  String? _nombre;
+  String? _paterno;
+  String? _materno;
+  String? _ci;
 
-  // URL base del endpoint de login
   final String apiUrl = 'http://test.api.movil.cies.org.bo/afiliacion/cies-contigo/login_codigo_cies_contigo/';
 
-  // Función para realizar login con el documento de identidad
   Future<void> loginPaciente(String documento) async {
     if (documento.isEmpty) {
       setState(() {
@@ -35,73 +36,71 @@ class _LoginPageState extends State<LoginPage> {
 
     setState(() {
       _isLoading = true;
-      loginStatus = null; // Limpiar mensajes anteriores
+      loginStatus = null;
     });
 
-    // Construir la URL con el documento como parámetro
     var url = Uri.parse('$apiUrl?documento=$documento');
 
     try {
-      // Realizar la solicitud POST
       var response = await http.post(
         url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({}),  // Puedes enviar un cuerpo vacío si no necesitas más datos
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({}),
       );
 
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');  // Imprimir el cuerpo de la respuesta
-
+      
       if (response.statusCode == 200) {
-        // Decodificar la respuesta de la API
         var data = jsonDecode(response.body);
 
-        // Verificar si 'pin_app' está en la respuesta
         if (data.containsKey('expedienteclinico') && data['expedienteclinico']['pin_app'] != null) {
+          int expedienteId = data['expedienteclinico']['id']; // Obtén el ID del expediente clínico
+          Provider.of<ExpedienteProvider>(context, listen: false).setExpedienteclinicoId(expedienteId); // Guarda el ID globalmente
+          int expedienteClinico = data['expedienteclinico']['expediente_clinico']; // Obtén el ID del expediente clínico
+          Provider.of<ExpedienteProvider>(context, listen: false).setExpedienteClinico(expedienteClinico); // Guarda el ID globalmente
+          
+          
           setState(() {
-            _pinApp = data['expedienteclinico']['pin_app'].toString();  // Guardar el PIN recibido
-            _nombre = data['nombres'];  // Guardar el nombre del paciente
-            _paterno = data['paterno'];  // Guardar el apellido del paciente
-            _ci = data['documento'];  // Guardar el CI del paciente
+            _pinApp = data['expedienteclinico']['pin_app'].toString();
+            _nombre = data['nombres'];
+            _paterno = data['paterno'];
+            _materno = data['materno'];
+            _ci = data['documento'];
             loginStatus = 'PIN enviado. Por favor ingresa el PIN.';
-            _pinSent = true;  // Habilitar la caja de texto para ingresar el PIN
+            _pinSent = true;
             _isLoading = false;
-            _showRegisterButton = false;  // Ocultar botón de registro si se encontró el paciente
+            _showRegisterButton = false;
           });
         } else {
           setState(() {
             loginStatus = 'Error: No se recibió el PIN.';
             _isLoading = false;
-            _showRegisterButton = false;  // Ocultar botón de registro
+            _showRegisterButton = false;
           });
         }
       } else if (response.statusCode == 302) {
-        // Si el paciente no es encontrado, mostrar el botón para registrar
         setState(() {
           loginStatus = 'Paciente no encontrado. ¿Deseas registrarte?';
           _isLoading = false;
-          _showRegisterButton = true;  // Mostrar botón de registro
+          _showRegisterButton = true;
         });
       } else {
         setState(() {
           loginStatus = 'Error en el login. Código: ${response.statusCode}';
           _isLoading = false;
-          _showRegisterButton = false;  // Ocultar botón de registro
+          _showRegisterButton = false;
         });
       }
     } catch (e) {
-      print('Error: $e');
       setState(() {
         loginStatus = 'Error en la conexión';
         _isLoading = false;
-        _showRegisterButton = false;  // Ocultar botón de registro
+        _showRegisterButton = false;
       });
     }
   }
 
-  // Función para confirmar el PIN ingresado por el usuario
   Future<void> confirmarPin() async {
     String pin = _pinController.text;
     if (pin.isEmpty) {
@@ -111,20 +110,18 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    // Comparar el PIN introducido con el PIN recibido de la API (pin_app)
     if (pin == _pinApp) {
-      // Si el PIN es correcto, redirigir al menú del paciente pasando nombre y CI
       Navigator.pushNamed(
         context,
         '/menu_paciente',
         arguments: {
-          'nombre': _nombre,  // Pasar el nombre del paciente
-          'paterno': _paterno,  // Pasar el apellido del paciente
-          'ci': _ci,          // Pasar el CI del paciente
+          'nombre': _nombre,
+          'paterno': _paterno,
+          'materno': _materno,
+          'ci': _ci,
         },
       );
     } else {
-      // Si el PIN es incorrecto, mostrar mensaje de error
       setState(() {
         loginStatus = 'El PIN ingresado es incorrecto';
       });
@@ -134,9 +131,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Login de Pacientes"),
-      ),
+      appBar: AppBar(title: const Text("Login de Pacientes")),
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -144,9 +139,8 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                // Añadir el logo de la empresa si es necesario
                 Image.asset(
-                  'assets/images/logo.png',  // Ruta de tu logo en assets
+                  'assets/images/logo.png',
                   height: 120,
                   fit: BoxFit.contain,
                 ),
@@ -161,7 +155,7 @@ class _LoginPageState extends State<LoginPage> {
                         color: Colors.grey.withOpacity(0.5),
                         spreadRadius: 5,
                         blurRadius: 7,
-                        offset: const Offset(0, 3), // Cambia la posición de la sombra
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
@@ -189,26 +183,11 @@ class _LoginPageState extends State<LoginPage> {
                       _isLoading
                           ? const CircularProgressIndicator()
                           : ElevatedButton(
-                              onPressed: () {
-                                loginPaciente(_documentoController.text);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 50, vertical: 15),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                textStyle: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                              onPressed: () => loginPaciente(_documentoController.text),
                               child: const Text("Login"),
                             ),
-                      const SizedBox(height: 20),
-
-                      // Mostrar el campo de PIN solo si se envió el código PIN
                       if (_pinSent) ...[
+                        const SizedBox(height: 20),
                         TextField(
                           controller: _pinController,
                           keyboardType: TextInputType.number,
@@ -221,66 +200,30 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         const SizedBox(height: 20),
                         ElevatedButton(
-                          onPressed: () {
-                            confirmarPin();  // Confirmar el PIN ingresado
-                          },
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 50, vertical: 15),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            textStyle: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          onPressed: confirmarPin,
                           child: const Text("Confirmar PIN"),
                         ),
                       ],
-
-                      // Mostrar el botón de registro si el paciente no es encontrado
                       if (_showRegisterButton) ...[
                         const SizedBox(height: 20),
                         ElevatedButton(
-                          onPressed: () {
-                            // Navegar a la pantalla de registro de pacientes
-                            Navigator.pushNamed(context, '/register_page');
-                          },
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 50, vertical: 15),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            backgroundColor: Colors.green,  // Color verde para registro
-                          ),
-                          child: const Text(
-                            "Registrar Paciente",
-                            style: TextStyle(fontSize: 16),
-                          ),
+                          onPressed: () => Navigator.pushNamed(context, '/register_page'),
+                          child: const Text("Registrar Paciente"),
                         ),
                       ],
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
-                loginStatus != null
-                    ? Column(
-                        children: [
-                          Text(
-                            loginStatus!,
-                            style: TextStyle(
-                              color: loginStatus!.contains('exitoso')
-                                  ? Colors.green
-                                  : Colors.red,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      )
-                    : Container(),
+                if (loginStatus != null) ...[
+                  const SizedBox(height: 20),
+                  Text(
+                    loginStatus!,
+                    style: TextStyle(
+                      color: loginStatus!.contains('éxito') ? Colors.green : Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

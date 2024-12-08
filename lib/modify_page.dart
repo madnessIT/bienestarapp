@@ -10,7 +10,6 @@ class ModifyPage extends StatefulWidget {
 }
 
 class _ModifyPageState extends State<ModifyPage> {
-  final TextEditingController _searchController = TextEditingController();
   final TextEditingController _nombresController = TextEditingController();
   final TextEditingController _paternoController = TextEditingController();
   final TextEditingController _maternoController = TextEditingController();
@@ -22,15 +21,52 @@ class _ModifyPageState extends State<ModifyPage> {
   final TextEditingController _emailController = TextEditingController();
 
   String? modifyStatus;
-  String? patientId; // ID del paciente encontrado para modificar
+  bool _isLoading = false;
+
+  // URL del endpoint
   final String apiUrl = 'http://test.api.movil.cies.org.bo/afiliacion/';
 
-  // Método para buscar paciente (ahora usando POST)
-  Future<void> searchPatient() async {
+  // Método para enviar los datos al servidor
+  Future<void> modifyPatient() async {
+    setState(() {
+      _isLoading = true;
+      modifyStatus = null;
+    });
+
     var url = Uri.parse(apiUrl);
 
-    Map<String, String> data = {
-      'documento': _searchController.text,
+    Map<String, dynamic> data = {
+      "fecha_nacimiento": _fechaNacimientoController.text,
+      "nombres": _nombresController.text,
+      "paterno": _paternoController.text,
+      "materno": _maternoController.text,
+      "expedido": 1, // Ejemplo
+      "domicilio": _domicilioController.text,
+      "documento": _documentoController.text,
+      "sexo": _sexoController.text,
+      "tipo_documento": "CIN",
+      "estadocivil": 1, // Ejemplo
+      "celular": _celularController.text,
+      "asegurado_aux": null,
+      "expedienteclinico": {
+        "telefono": _celularController.text,
+        "email": _emailController.text,
+        "procedencia_pais": null,
+        "procedencia_departamento": null,
+        "residencia_pais": null,
+        "residencia_departamento": null,
+        "residencia_municipio": null,
+        "estado_civil": 1, // Ejemplo
+        "nivel_instruccion": null,
+        "ocupacion": null,
+        "idioma_materno": null,
+        "idioma_hablado": null,
+        "etnia": null,
+        "referencia": 1, // Valor por defecto
+        "identidad_genero": null,
+        "orientacion_sexual": null,
+        "regional": 2 // Código de la regional
+      }
     };
 
     try {
@@ -38,68 +74,14 @@ class _ModifyPageState extends State<ModifyPage> {
         url,
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: jsonEncode(data),
-      );
-
-      if (response.statusCode == 200) {
-        var data = jsonDecode(response.body);
-        setState(() {
-          patientId = data['id'].toString();
-          _nombresController.text = data['nombres'];
-          _paternoController.text = data['paterno'];
-          _maternoController.text = data['materno'];
-          _fechaNacimientoController.text = data['fecha_nacimiento'];
-          _domicilioController.text = data['domicilio'];
-          _documentoController.text = data['documento'];
-          _sexoController.text = data['sexo'];
-          _celularController.text = data['celular'].toString();
-          _emailController.text = data['expedienteclinico']['email'] ?? '';
-        });
-      } else {
-        setState(() {
-          modifyStatus = 'Paciente no encontrado. Código: ${response.statusCode}';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        modifyStatus = 'Error en la conexión';
-      });
-    }
-  }
-
-  // Método para modificar datos del paciente
-  Future<void> modifyPatient() async {
-    if (patientId == null) return;
-
-    var url = Uri.parse('$apiUrl$patientId/');
-    Map<String, dynamic> data = {
-      "fecha_nacimiento": _fechaNacimientoController.text,
-      "nombres": _nombresController.text,
-      "paterno": _paternoController.text,
-      "materno": _maternoController.text,
-      "domicilio": _domicilioController.text,
-      "documento": _documentoController.text,
-      "sexo": _sexoController.text,
-      "celular": _celularController.text,
-      "expedienteclinico": {
-        "email": _emailController.text,
-      }
-    };
-
-    try {
-      var response = await http.put(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'regional': '1',
+          'regional': '1', // Código de la sucursal
         },
         body: jsonEncode(data),
       );
 
       if (response.statusCode == 200) {
         setState(() {
-          modifyStatus = 'Datos del paciente modificados con éxito.';
+          modifyStatus = 'Datos modificados con éxito.';
         });
       } else {
         setState(() {
@@ -108,7 +90,11 @@ class _ModifyPageState extends State<ModifyPage> {
       }
     } catch (e) {
       setState(() {
-        modifyStatus = 'Error en la conexión';
+        modifyStatus = 'Error en la conexión: $e';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
       });
     }
   }
@@ -117,84 +103,65 @@ class _ModifyPageState extends State<ModifyPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Modificar Paciente"),
+        title: const Text("Modificar Datos del Paciente"),
         backgroundColor: Colors.blueAccent,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        child: ListView(
-          children: <Widget>[
+        child: Column(
+          children: [
             const Text(
-              'Buscar Paciente',
+              'Modifica tus datos',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            TextField(
-              controller: _searchController,
-              decoration: const InputDecoration(
-                labelText: 'Documento de Identidad',
-              ),
-            ),
-            ElevatedButton(
-              onPressed: searchPatient,
-              child: const Text("Buscar"),
-            ),
-            const Divider(height: 30),
-            const Text(
-              'Modificar Datos del Paciente',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            TextField(
-              controller: _nombresController,
-              decoration: const InputDecoration(labelText: 'Nombres'),
-            ),
-            TextField(
-              controller: _paternoController,
-              decoration: const InputDecoration(labelText: 'Apellido Paterno'),
-            ),
-            TextField(
-              controller: _maternoController,
-              decoration: const InputDecoration(labelText: 'Apellido Materno'),
-            ),
-            TextField(
-              controller: _fechaNacimientoController,
-              decoration: const InputDecoration(labelText: 'Fecha de Nacimiento (YYYY-MM-DD)'),
-            ),
-            TextField(
-              controller: _domicilioController,
-              decoration: const InputDecoration(labelText: 'Domicilio'),
-            ),
-            TextField(
-              controller: _documentoController,
-              decoration: const InputDecoration(labelText: 'Documento de Identidad'),
-            ),
-            TextField(
-              controller: _sexoController,
-              decoration: const InputDecoration(labelText: 'Sexo (MA/FE)'),
-            ),
-            TextField(
-              controller: _celularController,
-              decoration: const InputDecoration(labelText: 'Celular'),
-            ),
-            TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(labelText: 'Email'),
-            ),
             const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: modifyPatient,
-              child: const Text("Guardar Cambios"),
-            ),
+            _buildTextField(_nombresController, "Nombres"),
+            _buildTextField(_paternoController, "Apellido Paterno"),
+            _buildTextField(_maternoController, "Apellido Materno"),
+            _buildTextField(_fechaNacimientoController, "Fecha de Nacimiento (YYYY-MM-DD)"),
+            _buildTextField(_domicilioController, "Domicilio"),
+            _buildTextField(_documentoController, "Documento de Identidad"),
+            _buildTextField(_sexoController, "Sexo (MA/FE)"),
+            _buildTextField(_celularController, "Celular"),
+            _buildTextField(_emailController, "Correo Electrónico"),
             const SizedBox(height: 20),
-            modifyStatus != null
-                ? Text(
-                    modifyStatus!,
-                    style: TextStyle(
-                      color: modifyStatus!.contains('éxito') ? Colors.green : Colors.red,
-                      fontWeight: FontWeight.bold,
+            _isLoading
+                ? const CircularProgressIndicator()
+                : ElevatedButton(
+                    onPressed: modifyPatient,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
-                  )
-                : Container(),
+                    child: const Text("Guardar Cambios"),
+                  ),
+            const SizedBox(height: 20),
+            if (modifyStatus != null)
+              Text(
+                modifyStatus!,
+                style: TextStyle(
+                  color: modifyStatus!.contains('éxito') ? Colors.green : Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: TextField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       ),
     );

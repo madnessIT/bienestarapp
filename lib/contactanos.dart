@@ -6,28 +6,28 @@ class ContactanosPage extends StatelessWidget {
   const ContactanosPage({super.key});
 
   // Métodos para abrir los enlaces
-  void _launchFacebook() async {
-    const url = 'https://www.facebook.com/ClinicaBienestarSalud';
-    if (await canLaunch(url)) {
-      await launch(url);
+  Future<void> _launchFacebook() async {
+    final Uri url = Uri.parse('https://www.facebook.com/ClinicaBienestarSalud');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
       throw 'No se pudo abrir el enlace a Facebook';
     }
   }
 
-  void _launchWhatsApp() async {
-    const url = 'https://wa.me/59169805848';
-    if (await canLaunch(url)) {
-      await launch(url);
+  Future<void> _launchWhatsApp() async {
+    final Uri url = Uri.parse('https://wa.me/59169805848');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
       throw 'No se pudo abrir el enlace a WhatsApp';
     }
   }
 
-  void _launchWebsite() async {
-    const url = 'https://clinicabienestar.tes.com.bo/';
-    if (await canLaunch(url)) {
-      await launch(url);
+  Future<void> _launchWebsite() async {
+    final Uri url = Uri.parse('https://clinicabienestar.tes.com.bo/');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
       throw 'No se pudo abrir el enlace al sitio web';
     }
@@ -51,7 +51,7 @@ class ContactanosPage extends StatelessWidget {
             const SizedBox(height: 20),
             Center(
               child: Image.asset(
-                'assets/images/logo.png', // Ruta correcta del logo
+                'assets/images/logo.png',
                 height: 120,
                 fit: BoxFit.contain,
               ),

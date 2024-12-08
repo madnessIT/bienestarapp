@@ -81,7 +81,7 @@ class MenuPacientePage extends StatelessWidget {
                         icon: Icons.medical_services,
                         title: 'Mis atenciones médicas',
                         color: const Color.fromARGB(255, 1, 179, 45),
-                        routeName: '/mis_atenciones_medicas',
+                        routeName: '/servicios_medicos',
                       ),
                       _buildMenuOption(
                         context,
