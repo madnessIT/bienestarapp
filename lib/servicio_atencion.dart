@@ -17,6 +17,7 @@ class _ServiciosAtencionPageState extends State<ServiciosAtencionPage> {
   bool _isLoading = true;
   late String fecha;
   late String departamentoId;
+  late String departamentoNombre;
   String searchQuery = '';
 
   @override
@@ -28,7 +29,8 @@ class _ServiciosAtencionPageState extends State<ServiciosAtencionPage> {
   Widget build(BuildContext context) {
     fecha = Provider.of<FechaProvider>(context).fecha ?? '';
     departamentoId = Provider.of<FechaProvider>(context).departamentoId ?? '';
-
+    departamentoNombre = Provider.of<FechaProvider>(context).departamentoNombre ?? '';
+    
     if (_isLoading) {
       _fetchServicios(fecha, departamentoId);
     }
@@ -64,7 +66,7 @@ class _ServiciosAtencionPageState extends State<ServiciosAtencionPage> {
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
                 Text(
-                  'Regional: $departamentoId',
+                  'Regional: $departamentoNombre',
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
               ],
@@ -116,7 +118,7 @@ class _ServiciosAtencionPageState extends State<ServiciosAtencionPage> {
                               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                             ),
                             subtitle: Text(
-                              servicio['descripcion'] ?? 'Sin descripción',
+                              servicio['codigo'] ?? 'Sin Codigo',
                               style: const TextStyle(color: Colors.grey),
                             ),
                             trailing: const Icon(Icons.arrow_forward_ios, color: Colors.blueAccent),

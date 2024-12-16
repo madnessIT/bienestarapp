@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:provider/provider.dart';
+import 'fecha_provider.dart';
 
 class SucursalAtencionPage extends StatelessWidget {
   const SucursalAtencionPage({super.key});
@@ -10,11 +12,14 @@ class SucursalAtencionPage extends StatelessWidget {
     final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
     final String fecha = args?['fecha']?.toString() ?? '';
-    final String departamentoId = args?['departamento_id']?.toString() ?? '';
     final String especialidadId = args?['especialidad_id']?.toString() ?? '';
     final List<dynamic> sucursales = args?['sucursales'] ?? [];
 
-    if (fecha.isEmpty || departamentoId.isEmpty || especialidadId.isEmpty) {
+    // Obtener datos del FechaProvider
+    final fechaProvider = Provider.of<FechaProvider>(context);
+    final String departamentoNombre = fechaProvider.departamentoNombre ?? 'Sin nombre';
+
+    if (fecha.isEmpty || departamentoNombre.isEmpty || especialidadId.isEmpty) {
       return Scaffold(
         appBar: AppBar(title: const Text('Sucursal Atención')),
         body: const Center(child: Text('Error: Parámetros faltantes o inválidos.')),
@@ -37,7 +42,6 @@ class SucursalAtencionPage extends StatelessWidget {
             '/medico_atencion',
             arguments: {
               'fecha': fecha,
-              'departamento_id': departamentoId,
               'especialidad_id': especialidadId,
               'codigo': codigo,
               'medicos': medicos,
@@ -82,7 +86,7 @@ class SucursalAtencionPage extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Encabezado con fecha y departamento
+                  // Encabezado con fecha y nombre del departamento
                   Card(
                     color: Colors.blue[50],
                     shape: RoundedRectangleBorder(
@@ -93,7 +97,7 @@ class SucursalAtencionPage extends StatelessWidget {
                         'Fecha de Atención: $fecha',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      subtitle: Text('Regional: $departamentoId'),
+                      subtitle: Text('Regional: $departamentoNombre'),
                     ),
                   ),
                   const SizedBox(height: 10),

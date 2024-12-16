@@ -8,9 +8,10 @@ class MedicoAtencionPage extends StatelessWidget {
     final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
     final String fecha = args?['fecha']?.toString() ?? 'Fecha no disponible';
-    final String departamentoId = args?['departamento_id']?.toString() ?? 'ID de departamento no disponible';
+   // final String departamentoId = args?['departamento_id']?.toString() ?? 'ID de departamento no disponible';
     final String especialidadId = args?['especialidad_id']?.toString() ?? 'ID de especialidad no disponible';
     final String regionalId = args?['codigo']?.toString() ?? 'ID de regional no disponible';
+    //final String nombre = args?['nombre']?.toString() ?? 'nombre de especialidad no disponible';
     final List<dynamic> medicos = args?['medicos'] ?? [];
 
     return Scaffold(
@@ -24,9 +25,10 @@ class MedicoAtencionPage extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: Text(
               'Fecha: $fecha\n'
-              'Departamento ID: $departamentoId\n'
+              //'Departamento ID: $departamentoId\n'
               'Especialidad ID: $especialidadId\n'
-              'Regional ID: $regionalId',
+              //'Nombre: $nombre\n'
+              'Regional ID: $regionalId\n',
               style: const TextStyle(fontSize: 16),
             ),
           ),

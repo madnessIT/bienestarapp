@@ -1,61 +1,69 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:provider/provider.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '/expediente_provider.dart';
 
 class LaboratoriosPage extends StatefulWidget {
-  const LaboratoriosPage({super.key});
+  const LaboratoriosPage({Key? key}) : super(key: key);
 
   @override
   _LaboratoriosPageState createState() => _LaboratoriosPageState();
 }
 
 class _LaboratoriosPageState extends State<LaboratoriosPage> {
-  List<dynamic> ordenesLaboratorio = [];
+  List<dynamic>? laboratorios;
   bool _isLoading = true;
-  String? errorMessage;
+  bool _hasError = false;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _fetchOrdenesLaboratorio();
+    _fetchLaboratorios();
   }
 
-  // Método para obtener las órdenes de laboratorio
-  Future<void> _fetchOrdenesLaboratorio() async {
-    final expedienteClinico = Provider.of<ExpedienteProvider>(context, listen: false).expedienteClinico;
-
-    if (expedienteClinico == null) {
-      setState(() {
-        errorMessage = "El ID del expediente clínico no está disponible.";
-        _isLoading = false;
-      });
-      return;
-    }
-
-    final url = Uri.parse(
-        'http://test.api.movil.cies.org.bo/laboratorio/ordenes/$expedienteClinico/paciente/');
-
+  Future<void> _fetchLaboratorios() async {
     try {
-      final response = await http.get(url);
+      // Obtener expedienteClinico desde el provider
+      final expedienteProvider = Provider.of<ExpedienteProvider>(context, listen: false);
+      final expedienteClinico = expedienteProvider.expedienteClinico;
+
+      if (expedienteClinico == null) {
+        throw Exception('ID de expediente clínico no disponible.');
+      }
+
+      final url = Uri.parse(
+          'http://test.api.movil.cies.org.bo/laboratorio/ordenes/$expedienteClinico/paciente/');
+
+      final response = await http.get(
+        url,
+        headers: {'regional': '02'},
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
-        setState(() {
-          ordenesLaboratorio = jsonDecode(response.body);
-          _isLoading = false;
-        });
+        final decodedData = jsonDecode(response.body);
+        if (decodedData is List<dynamic>) {
+          setState(() {
+            laboratorios = decodedData;
+            _isLoading = false;
+          });
+        } else {
+          throw Exception('Formato de datos inesperado.');
+        }
       } else {
-        setState(() {
-          errorMessage = "Error al obtener las órdenes de laboratorio. Código: ${response.statusCode}";
-          _isLoading = false;
-        });
+        throw Exception('Error HTTP: ${response.statusCode}');
       }
     } catch (e) {
       setState(() {
-        errorMessage = "Error de conexión: $e";
+        _hasError = true;
         _isLoading = false;
+        _errorMessage = 'Error de conexión: $e';
       });
+      print('Error de conexión: $e');
     }
   }
 
@@ -63,62 +71,101 @@ class _LaboratoriosPageState extends State<LaboratoriosPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Órdenes de Laboratorio'),
+        title: const Text('Resultados de Laboratorio'),
         backgroundColor: Colors.blueAccent,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : errorMessage != null
+          : _hasError
               ? Center(
-                  child: Text(
-                    errorMessage!,
-                    style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Error al cargar los datos de laboratorio.',
+                        style: TextStyle(fontSize: 18, color: Colors.red),
+                      ),
+                      if (_errorMessage != null)
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            _errorMessage!,
+                            style: const TextStyle(fontSize: 14, color: Colors.black),
+                          ),
+                        ),
+                    ],
                   ),
                 )
-              : _buildOrdenesLaboratorioList(),
+              : laboratorios == null || laboratorios!.isEmpty
+                  ? const Center(
+                      child: Text(
+                        'No se encontraron resultados de laboratorio.',
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: laboratorios!.length,
+                      itemBuilder: (context, index) {
+                        final laboratorio = laboratorios![index];
+                        return Card(
+                          margin: const EdgeInsets.symmetric(
+                              vertical: 8.0, horizontal: 16.0),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Orden: ${laboratorio['orden'] ?? 'No disponible'}',
+                                  style: const TextStyle(
+                                      fontSize: 18, fontWeight: FontWeight.bold),
+                                ),
+                                Text(
+                                  'Fecha de Creación: ${laboratorio['fecha_creacion'] ?? 'No disponible'}',
+                                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                                ),
+                                const SizedBox(height: 12.0),
+                                if ((laboratorio['detalles'] ?? []).isNotEmpty)
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Detalles de Exámenes:',
+                                        style: TextStyle(
+                                            fontSize: 16, fontWeight: FontWeight.bold),
+                                      ),
+                                      const SizedBox(height: 8.0),
+                                      ..._buildItems(laboratorio['detalles']),
+                                    ],
+                                  )
+                                else
+                                  const Text(
+                                    'No hay detalles disponibles.',
+                                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
     );
   }
 
-  // Construir la vista de órdenes de laboratorio
-  Widget _buildOrdenesLaboratorioList() {
-    if (ordenesLaboratorio.isEmpty) {
-      return const Center(
-        child: Text(
-          'No hay órdenes de laboratorio disponibles.',
-          style: TextStyle(fontSize: 16),
-        ),
+  List<Widget> _buildItems(List<dynamic> items) {
+    return items.map((item) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Examen: ${item['examen']?['nombre'] ?? 'No disponible'}',
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          Text('Estado: ${item['estado'] ?? 'No disponible'}'),
+          Text('Resultado: ${item['resultado'] ?? 'No disponible'}'),
+          const Divider(),
+        ],
       );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16.0),
-      itemCount: ordenesLaboratorio.length,
-      itemBuilder: (context, index) {
-        var orden = ordenesLaboratorio[index];
-
-        return Card(
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: ListTile(
-            title: Text(
-              orden['descripcion'] ?? 'Orden sin descripción',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Text(
-              'Fecha: ${orden['fecha_creacion'] ?? 'No disponible'}',
-              style: const TextStyle(fontSize: 14),
-            ),
-            trailing: const Icon(Icons.arrow_forward_ios, color: Colors.blueAccent),
-            onTap: () {
-              // Aquí podrías implementar navegación a más detalles si es necesario
-              print('Orden seleccionada: ${orden['id']}');
-            },
-          ),
-        );
-      },
-    );
+    }).toList();
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'fecha_provider.dart';
 import 'expediente_provider.dart';
+import 'especialidad_provider.dart';
 import 'login_page.dart';
 import 'register_page.dart';
 import 'menu_paciente.dart';
@@ -25,6 +26,7 @@ void main()  {
       providers: [
         ChangeNotifierProvider(create: (_) => FechaProvider()),
         ChangeNotifierProvider(create: (_) => ExpedienteProvider()),
+        ChangeNotifierProvider(create: (_) => EspecialidadProvider()),
       ],
       child: const MyApp(),
     ),
@@ -54,7 +56,7 @@ class MyApp extends StatelessWidget {
         '/sucursal_atencion': (context) => const SucursalAtencionPage(),
         '/servicio_atencion': (context) => const ServiciosAtencionPage(),
         '/medico_atencion': (context) => const MedicoAtencionPage (),
-        '/modify_page':(context) => const ModifyPage (),
+        '/modify_page':(context) => const ModificarPacientePage (),
         '/servicios_medicos/recetas': (context) => const RecetasPage(),
         '/servicios_medicos/signos_vitales': (context) => const SignosVitalesPage(),
         '/servicios_medicos/laboratorios': (context) => const LaboratoriosPage(),

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '/expediente_provider.dart'; // Importa tu provider
+import 'package:http/http.dart' as http;
+
+import '/expediente_provider.dart';
 
 class RecetasPage extends StatefulWidget {
   const RecetasPage({super.key});
@@ -12,55 +13,78 @@ class RecetasPage extends StatefulWidget {
 }
 
 class _RecetasPageState extends State<RecetasPage> {
+  Map<String, dynamic>? ultimaReceta;
   bool _isLoading = true;
-  List<dynamic> _recetas = []; // Aquí almacenaremos las recetas
+  bool _hasError = false;
+  String _errorMessage = '';
 
   @override
   void initState() {
     super.initState();
-    _fetchRecetas();
+    _fetchUltimaReceta();
   }
 
-  Future<void> _fetchRecetas() async {
-    // Obtener el ID del expediente clínico desde el Provider
-    final expedienteClinico = Provider.of<ExpedienteProvider>(context, listen: false).expedienteClinico;
-
-    if (expedienteClinico == null) {
-      // Manejar el caso en que el expedienteId no esté disponible
-      setState(() {
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se encontró el expediente clínico')),
-      );
-      return;
-    }
-      var url = Uri.parse('http://test.api.movil.cies.org.bo/historia_clinica/expediente_clinico/$expedienteClinico/');
-    //var url = Uri.parse('http://test.api.movil.cies.org.bo/laboratorio/ordenes/$expedienteId/paciente/');
-                             
+  Future<void> _fetchUltimaReceta() async {
     try {
-      var response = await http.get(url);
+      final expedienteProvider =
+          Provider.of<ExpedienteProvider>(context, listen: false);
+      final expedienteClinico = expedienteProvider.expedienteClinico;
+
+      if (expedienteClinico == null) {
+        setState(() {
+          _hasError = true;
+          _errorMessage = 'Expediente clínico no disponible.';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      final url = Uri.parse(
+        'http://test.api.movil.cies.org.bo/historia_clinica/expediente_clinico/$expedienteClinico/',
+      );
+
+      final response = await http.get(url);
 
       if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        // Buscar la última receta
+        final recetas = <Map<String, dynamic>>[];
+
+        for (var entry in data) {
+          if (entry['evoluciones'] is List) {
+            for (var evolucion in entry['evoluciones']) {
+              if (evolucion['indicaciones']?['recetas'] is List) {
+                recetas.addAll(
+                  (evolucion['indicaciones']['recetas'] as List<dynamic>)
+                      .whereType<Map<String, dynamic>>(),
+                );
+              }
+            }
+          }
+        }
+
+        // Ordenar recetas por fecha y obtener la última
+        recetas.sort((a, b) {
+          final fechaA = DateTime.parse(a['fecha_creacion']);
+          final fechaB = DateTime.parse(b['fecha_creacion']);
+          return fechaB.compareTo(fechaA);
+        });
+
         setState(() {
-          _recetas = jsonDecode(response.body);
+          ultimaReceta = recetas.isNotEmpty ? recetas.first : null;
           _isLoading = false;
         });
       } else {
-        setState(() {
-          _isLoading = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${response.statusCode} al cargar recetas')),
-        );
+        throw Exception('Error: ${response.statusCode}');
       }
     } catch (e) {
+      print('Error: $e');
       setState(() {
+        _hasError = true;
+        _errorMessage = 'Error al cargar las recetas: $e';
         _isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error de conexión: $e')),
-      );
     }
   }
 
@@ -68,41 +92,98 @@ class _RecetasPageState extends State<RecetasPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Recetas Médicas'),
+        title: const Text('Última Receta'),
         backgroundColor: Colors.blueAccent,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _recetas.isEmpty
-              ? const Center(
-                  child: Text('No hay recetas disponibles'),
+          : _hasError
+              ? Center(
+                  child: Text(
+                    _errorMessage,
+                    style: const TextStyle(fontSize: 18, color: Colors.red),
+                    textAlign: TextAlign.center,
+                  ),
                 )
-              : ListView.builder(
-                  itemCount: _recetas.length,
-                  itemBuilder: (context, index) {
-                    var receta = _recetas[index];
-                    return Card(
-                      margin: const EdgeInsets.all(10.0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+              : ultimaReceta == null
+                  ? const Center(
+                      child: Text(
+                        'No hay recetas disponibles.',
+                        style: TextStyle(fontSize: 18, color: Colors.grey),
                       ),
-                      elevation: 5,
-                      child: ListTile(
-                        title: Text(
-                          receta['nombre_receta'] ?? 'Receta sin nombre',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(
-                          'Fecha: ${receta['fecha_emision'] ?? 'No disponible'}',
-                        ),
-                        trailing: const Icon(Icons.arrow_forward_ios, color: Colors.blueAccent),
-                        onTap: () {
-                          // Aquí puedes agregar la lógica para mostrar más detalles de la receta
-                        },
-                      ),
-                    );
-                  },
+                    )
+                  : _buildRecetaCard(ultimaReceta!),
+    );
+  }
+
+  Widget _buildRecetaCard(Map<String, dynamic> receta) {
+    final detalles = receta['detalles'] as List<dynamic>?;
+
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Última Receta',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'ID: ${receta['id'] ?? 'No disponible'}',
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Fecha de Creación: ${receta['fecha_creacion']?.split('T')[0] ?? 'No disponible'}',
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'Detalles:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              if (detalles != null && detalles.isNotEmpty)
+                ...detalles
+                    .whereType<Map<String, dynamic>>()
+                    .map((detalle) => _buildDetalleRow(detalle))
+                    
+              else
+                const Text(
+                  'No hay detalles disponibles.',
+                  style: TextStyle(fontSize: 16),
                 ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetalleRow(Map<String, dynamic> detalle) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              detalle['nombre_generico'] ?? 'No disponible',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
+          Text(
+            'Cantidad: ${detalle['cantidad']?.toString() ?? 'No disponible'}',
+            style: const TextStyle(fontSize: 16),
+          ),
+        ],
+      ),
     );
   }
 }
