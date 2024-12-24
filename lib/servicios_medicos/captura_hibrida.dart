@@ -40,7 +40,8 @@ class _CapturaHibridaHistorialPageState
     }
 
     final url = Uri.parse(
-      'http://test.api.movil.cies.org.bo/resultado_captura_hibrida_resultado_editar/list_captura_hibrida_historial_con_resultado_informados_no_informados/?expediente_clinico=$expedienteClinico',
+     // 'http://test.api.movil.cies.org.bo/resultado_captura_hibrida_resultado_editar/list_captura_hibrida_historial_con_resultado_informados_no_informados/?expediente_clinico=$expedienteClinico',
+         'http://test.api.movil.cies.org.bo/resultado_pap_informado/list_pap_historial_con_resultado_informados_no_informados/?expediente_clinico=$expedienteClinico',   
     );
 
     print(expedienteClinico);
@@ -72,7 +73,7 @@ class _CapturaHibridaHistorialPageState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Historial de Capturas Híbridas"),
+        title: const Text("Historial de PAPANICOLAO"),
         backgroundColor: Colors.blueAccent,
       ),
       body: _isLoading

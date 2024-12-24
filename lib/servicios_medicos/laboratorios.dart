@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import '/expediente_provider.dart';
 
 class LaboratoriosPage extends StatefulWidget {
-  const LaboratoriosPage({Key? key}) : super(key: key);
+  const LaboratoriosPage({super.key});
 
   @override
   _LaboratoriosPageState createState() => _LaboratoriosPageState();

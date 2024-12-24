@@ -24,7 +24,8 @@ class _LoginPageState extends State<LoginPage> {
   String? _materno;
   String? _ci;
 
-  final String apiUrl = 'http://test.api.movil.cies.org.bo/afiliacion/cies-contigo/login_codigo_cies_contigo/';
+  final String apiUrl = 'http://test.api.movil.cies.org.bo/afiliacion/login_codigo_tes/';
+  ///afiliacion/cies-contigo/login_codigo_cies_contigo/';
 
   Future<void> loginPaciente(String documento) async {
     if (documento.isEmpty) {
@@ -59,9 +60,14 @@ class _LoginPageState extends State<LoginPage> {
           Provider.of<ExpedienteProvider>(context, listen: false).setExpedienteclinicoId(expedienteId); // Guarda el ID globalmente
           int expedienteClinico = data['expedienteclinico']['expediente_clinico']; // Obtén el ID del expediente clínico
           Provider.of<ExpedienteProvider>(context, listen: false).setExpedienteClinico(expedienteClinico); // Guarda el ID globalmente
+          String? nit = data['nit']; // Obtén el NIT del expediente clínico
+          Provider.of<ExpedienteProvider>(context, listen: false).setnit(nit); // Guarda el nit globalmente
+          String? razonSocial = data['razon_social']; // Obtén el razon_social del expediente clínico
+          Provider.of<ExpedienteProvider>(context, listen: false).setrazonSocial(razonSocial); // Guarda el nit globalmente
+          print(' razon Social: $razonSocial');
+          print(' Nit: $nit');
           
-          
-          setState(() {
+             setState(() {
             _pinApp = data['expedienteclinico']['pin_app'].toString();
             _nombre = data['nombres'];
             _paterno = data['paterno'];

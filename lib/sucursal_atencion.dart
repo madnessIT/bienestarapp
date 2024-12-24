@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:provider/provider.dart';
 import 'fecha_provider.dart';
+import 'servicio_provider.dart';
+import 'sucursal_provider.dart'; // Importamos el SucursalProvider
 
 class SucursalAtencionPage extends StatelessWidget {
   const SucursalAtencionPage({super.key});
@@ -18,7 +20,10 @@ class SucursalAtencionPage extends StatelessWidget {
     // Obtener datos del FechaProvider
     final fechaProvider = Provider.of<FechaProvider>(context);
     final String departamentoNombre = fechaProvider.departamentoNombre ?? 'Sin nombre';
-
+    
+    // Obtener el nombre del servicio desde el ServicioProvider
+    final servicioNombre = Provider.of<ServicioProvider>(context).servicioNombre;
+    
     if (fecha.isEmpty || departamentoNombre.isEmpty || especialidadId.isEmpty) {
       return Scaffold(
         appBar: AppBar(title: const Text('Sucursal Atención')),
@@ -58,8 +63,11 @@ class SucursalAtencionPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Sucursal Atención',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          'Sucursales Disponibles',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         backgroundColor: const Color.fromARGB(255, 1, 179, 45),
         elevation: 2,
@@ -87,18 +95,35 @@ class SucursalAtencionPage extends StatelessWidget {
                     ),
                   ),
                   // Encabezado con fecha y nombre del departamento
-                  Card(
-                    color: Colors.blue[50],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: ListTile(
-                      title: Text(
-                        'Fecha de Atención: $fecha',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                  Center(
+              child:  Card(
+                color: Colors.blue[50],
+                elevation: 4,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                margin: const EdgeInsets.only(bottom: 16),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Fecha Atencion: $fecha',
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                       ),
-                      subtitle: Text('Regional: $departamentoNombre'),
-                    ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Regional: $departamentoNombre',
+                        style: const TextStyle(fontSize: 14, color: Colors.black87),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Servicio: $servicioNombre',
+                        style: const TextStyle(fontSize: 14, color: Colors.black87),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
                   ),
                   const SizedBox(height: 10),
                   Expanded(
@@ -107,7 +132,12 @@ class SucursalAtencionPage extends StatelessWidget {
                       itemBuilder: (context, index) {
                         var sucursal = sucursales[index];
                         var codigo = sucursal['codigo']?.toString() ?? '';
+                        var descripcion = sucursal['descripcion']?.toString() ?? 'Sucursal sin nombre';
                         var direccion = sucursal['direccion']?.toString() ?? 'Dirección no disponible';
+
+                        // Guardamos los datos de la sucursal en el SucursalProvider
+                        final sucursalProvider = Provider.of<SucursalProvider>(context, listen: false);
+                        sucursalProvider.setSucursal(codigo, descripcion);
 
                         return Card(
                           margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -118,7 +148,7 @@ class SucursalAtencionPage extends StatelessWidget {
                           child: ListTile(
                             contentPadding: const EdgeInsets.all(16.0),
                             title: Text(
-                              sucursal['descripcion']?.toString() ?? 'Sucursal sin nombre',
+                              descripcion,
                               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                             ),
                             subtitle: Text(

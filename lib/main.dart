@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'fecha_provider.dart';
 import 'expediente_provider.dart';
-import 'especialidad_provider.dart';
+import 'servicio_provider.dart';
+import 'sucursal_provider.dart';
 import 'login_page.dart';
 import 'register_page.dart';
 import 'menu_paciente.dart';
@@ -15,10 +16,13 @@ import 'servicio_atencion.dart';
 import 'sucursal_atencion.dart';
 import 'medico_atencion.dart';
 import 'modify_page.dart';
+import 'mis_reservas.dart';
+import 'pap.dart';
 import '/servicios_medicos/recetas.dart';
 import '/servicios_medicos/signos_vitales.dart';
 import '/servicios_medicos/laboratorios.dart';
 import '/servicios_medicos/captura_hibrida.dart';
+import '/prefactura.dart';
 
 void main()  {
   runApp(
@@ -26,7 +30,8 @@ void main()  {
       providers: [
         ChangeNotifierProvider(create: (_) => FechaProvider()),
         ChangeNotifierProvider(create: (_) => ExpedienteProvider()),
-        ChangeNotifierProvider(create: (_) => EspecialidadProvider()),
+        ChangeNotifierProvider(create: (_) => ServicioProvider()),
+        ChangeNotifierProvider(create: (_) => SucursalProvider()),
       ],
       child: const MyApp(),
     ),
@@ -35,7 +40,7 @@ void main()  {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  //const MyApp({super.key});
+  
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -57,10 +62,13 @@ class MyApp extends StatelessWidget {
         '/servicio_atencion': (context) => const ServiciosAtencionPage(),
         '/medico_atencion': (context) => const MedicoAtencionPage (),
         '/modify_page':(context) => const ModificarPacientePage (),
+        '/mis_reservas':(context) =>  const MisReservasPage (),
         '/servicios_medicos/recetas': (context) => const RecetasPage(),
         '/servicios_medicos/signos_vitales': (context) => const SignosVitalesPage(),
         '/servicios_medicos/laboratorios': (context) => const LaboratoriosPage(),
         '/captura_hibrida': (context) => const CapturaHibridaHistorialPage(),
+        '/pap': (context) =>  const PapPage(),
+        '/prefactura': (context) =>  const PrefacturaPage(),
 
       },
      

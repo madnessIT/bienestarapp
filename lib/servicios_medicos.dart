@@ -62,11 +62,11 @@ class ServiciosMedicosPage extends StatelessWidget {
                   _buildMenuItem(
                     context,
                     icon: Icons.woman,
-                    title: 'Capturas Híbridas',
+                    title: 'Papanicolaou',
                     subtitle: 'Consulta los resultados de tus estudios.',
                     onTap: () {
                       // Acción para redirigir a Estudios de PAP
-                      Navigator.pushNamed(context, '/captura_hibrida');
+                      Navigator.pushNamed(context, '/pap');
                     },
                   ),
                   _buildMenuItem(

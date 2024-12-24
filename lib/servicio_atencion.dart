@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:provider/provider.dart';
 import 'fecha_provider.dart';
+import 'servicio_provider.dart';
 
 class ServiciosAtencionPage extends StatefulWidget {
   const ServiciosAtencionPage({super.key});
@@ -30,7 +31,7 @@ class _ServiciosAtencionPageState extends State<ServiciosAtencionPage> {
     fecha = Provider.of<FechaProvider>(context).fecha ?? '';
     departamentoId = Provider.of<FechaProvider>(context).departamentoId ?? '';
     departamentoNombre = Provider.of<FechaProvider>(context).departamentoNombre ?? '';
-    
+
     if (_isLoading) {
       _fetchServicios(fecha, departamentoId);
     }
@@ -125,7 +126,7 @@ class _ServiciosAtencionPageState extends State<ServiciosAtencionPage> {
                             onTap: () {
                               if (especialidades.isNotEmpty) {
                                 String especialidadId = especialidades[0]['id'].toString();
-                                _onEspecialidadSelected(especialidadId);
+                                _onEspecialidadSelected(servicio['nombre'], servicio['codigo'], especialidadId);
                               } else {
                                 print("No hay especialidades disponibles para este servicio");
                               }
@@ -170,9 +171,14 @@ class _ServiciosAtencionPageState extends State<ServiciosAtencionPage> {
     }
   }
 
-  void _onEspecialidadSelected(String especialidadId) async {
+  void _onEspecialidadSelected(String servicioNombre, String servicioCodigo, String especialidadId) async {
+    // Actualiza el servicio seleccionado en el ServicioProvider
+    Provider.of<ServicioProvider>(context, listen: false).setServicio(servicioNombre, servicioCodigo);
+
     var url = Uri.parse(
-      'http://test.api.movil.cies.org.bo/agenda/regionales_internet/?especialidad=$especialidadId&departamento=$departamentoId&fecha=$fecha',
+      'http://test.api.movil.cies.org.bo/agenda/regionales_tes/?especialidad=$especialidadId&departamento=$departamentoId&fecha=$fecha',
+
+      ///agenda/regionales_internet/?especialidad=$especialidadId&departamento=$departamentoId&fecha=$fecha',
     );
 
     try {
