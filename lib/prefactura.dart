@@ -10,20 +10,18 @@ import 'expediente_provider.dart';
 class PrefacturaPage extends StatelessWidget {
   const PrefacturaPage({super.key});
 
-  // Método para obtener los servicios desde el endpoint con encabezados
   Future<List<dynamic>> fetchServicios(String servicioNombre, String regionalCodigo) async {
     final url =
         'http://test.api.movil.cies.org.bo/administracion/servicios/all/?search=$servicioNombre';
 
     final headers = {
-      'regional': regionalCodigo, // Agregar el encabezado con el código regional
+      'regional': regionalCodigo,
     };
 
     final response = await http.get(Uri.parse(url), headers: headers);
 
     if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return data; // Se espera que el endpoint retorne una lista de servicios
+      return json.decode(response.body);
     } else {
       throw Exception('Error al cargar los servicios: ${response.statusCode}');
     }
@@ -31,11 +29,9 @@ class PrefacturaPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Obtener los datos enviados desde MedicoAtencionPage
     final Map<String, dynamic>? turnoSeleccionado =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
-    // Datos del turno seleccionado
     final medico = turnoSeleccionado?['medico'] ?? 'No disponible';
     final fecha = turnoSeleccionado?['fecha'] ?? 'No disponible';
     final horaInicio = turnoSeleccionado?['hora_inicio'] ?? 'No disponible';
@@ -47,68 +43,71 @@ class PrefacturaPage extends StatelessWidget {
       ),
       body: Consumer3<SucursalProvider, ServicioProvider, ExpedienteProvider>(
         builder: (context, sucursalProvider, servicioProvider, expedienteProvider, child) {
+          final nitController = TextEditingController(
+            text: expedienteProvider.nit ?? 'No asignado',
+          );
+          final razonSocialController = TextEditingController(
+            text: expedienteProvider.razonSocial ?? 'No asignado',
+          );
+
           return FutureBuilder<List<dynamic>>(
             future: fetchServicios(servicioProvider.servicioNombre, sucursalProvider.codigo),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               } else if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
+                return Center(
+                  child: Text(
+                    'Error: ${snapshot.error}',
+                    style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                  ),
+                );
               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                 return const Center(child: Text('No se encontraron servicios.'));
               } else {
                 final servicios = snapshot.data!;
-                return Padding(
+                return SingleChildScrollView(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Mostrar datos del turno seleccionado
-                      Text(
-                        'Turno Seleccionado:',
-                        style: Theme.of(context).textTheme.headlineMedium,
-                      ),
-                      Text('Fecha: $fecha'),
-                      Text('Hora: $horaInicio - $horaFin'),
-                      Text('Médico: $medico'),
+                      _buildSectionTitle(context, 'Turno Seleccionado:'),
+                      _buildInfoRow('Fecha:', fecha),
+                      _buildInfoRow('Hora:', '$horaInicio - $horaFin'),
+                      _buildInfoRow('Médico:', medico),
                       const SizedBox(height: 16),
 
-                      // Mostrar datos de la sucursal
-                      Text(
-                        'Sucursal:',
-                        style: Theme.of(context).textTheme.headlineMedium,
-                      ),
-                      Text('Código: ${sucursalProvider.codigo}'),
-                      Text('Descripción: ${sucursalProvider.descripcion}'),
+                      _buildSectionTitle(context, 'Sucursal:'),
+                      _buildInfoRow('Descripción:', sucursalProvider.descripcion),
                       const SizedBox(height: 16),
 
-                      // Mostrar los servicios obtenidos del endpoint
-                      Text(
-                        'Servicios Disponibles:',
-                        style: Theme.of(context).textTheme.headlineMedium,
-                      ),
-                      ...servicios.map((servicio) {
-                        final precio = servicio['precio'] ?? 'No disponible';
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Servicio: ${servicio['nombre']}'),
-                            Text('Precio: ${precio['precio']} Bs.'),
-                            const Divider(), // Separador entre servicios
-                          ],
-                        );
-                      }).toList(),
-
+                      _buildSectionTitle(context, 'Servicios Disponibles:'),
+                      ...servicios.map((servicio) => _buildServicioCard(servicio)),
                       const SizedBox(height: 16),
 
-                      // Mostrar los datos del expediente clínico
-                      Text(
-                        'Expediente Clínico:',
-                        style: Theme.of(context).textTheme.headlineMedium,
+                      _buildSectionTitle(context, 'Datos para factura:'),
+                      TextField(
+                        controller: nitController,
+                        decoration: const InputDecoration(
+                          labelText: 'NIT',
+                          border: OutlineInputBorder(),
+                        ),
                       ),
-                      Text('NIT: ${expedienteProvider.nit ?? 'No asignado'}'),
-                      Text(
-                          'Razón Social: ${expedienteProvider.razonSocial ?? 'No asignado'}'),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: razonSocialController,
+                        decoration: const InputDecoration(
+                          labelText: 'Razón Social',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: () {
+                          // Lógica para guardar o continuar
+                        },
+                        child: const Text('Continuar'),
+                      ),
                     ],
                   ),
                 );
@@ -116,6 +115,45 @@ class PrefacturaPage extends StatelessWidget {
             },
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(BuildContext context, String title) {
+    return Text(
+      title,
+      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(value),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildServicioCard(Map<String, dynamic> servicio) {
+    final precio = servicio['precio'] ?? 'No disponible';
+    return Card(
+      elevation: 3,
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Servicio: ${servicio['nombre']}',
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text('Precio: ${precio['precio']} Bs.'),
+          ],
+        ),
       ),
     );
   }

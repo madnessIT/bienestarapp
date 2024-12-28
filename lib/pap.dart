@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 import 'expediente_provider.dart';
 
@@ -11,11 +14,12 @@ class PapPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final expedienteProvider = Provider.of<ExpedienteProvider>(context);
-    final expedienteClinico = expedienteProvider.expedienteClinico; // Obteniendo el ID del expediente clínico
+    final expedienteClinico = expedienteProvider.expedienteClinico;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Historial de PAP'),
+        backgroundColor: Colors.deepPurple,
       ),
       body: FutureBuilder(
         future: _fetchPapHistorial(expedienteClinico),
@@ -33,17 +37,62 @@ class PapPage extends StatelessWidget {
             itemCount: papData.length,
             itemBuilder: (context, index) {
               final item = papData[index];
+              final nombresTipo = item['nombres_tipo'] as List;
+
               return Card(
-                margin: const EdgeInsets.all(10),
-                child: ListTile(
-                  title: Text('Resultado: ${_formatDate(item['resultado_fecha'])}'),
-                  subtitle: Column(
+                elevation: 5,
+                margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                child: Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Paciente: ${item['expediente_clinico']['nombre_paciente']}'),
+                      Row(
+                        children: [
+                          const Icon(Icons.person, color: Colors.deepPurple),
+                          const SizedBox(width: 10),
+                          Text(
+                            '${item['expediente_clinico']['nombre_paciente']}',
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 5),
                       Text('Edad: ${item['expediente_clinico']['edad']}'),
-                      Text('Médico: ${item['comprobante_detalle']['nombre_medico']}'),
+                      const Divider(),
+                      Row(
+                        children: [
+                          const Icon(Icons.local_hospital, color: Colors.deepPurple),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Médico: ${item['comprobante_detalle']['nombre_medico']}',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Text('Fecha del Resultado: ${_formatDate(item['resultado_fecha'])}'),
                       Text('Detalles: ${item['detalle'] ?? "No especificado"}'),
+                      const Divider(),
+                      Text(
+                        'Tipos:',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                      ...nombresTipo.map((tipo) => Text(
+                          '- ${tipo['nombre']} (Sección: ${tipo['seccion']})')),
+                      const SizedBox(height: 10),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: ElevatedButton.icon(
+                          onPressed: () => _generatePdf(context, item),
+                          icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
+                          label: const Text('Generar PDF'),
+                          style: ElevatedButton.styleFrom(
+                            //primary: Colors.deepPurple,
+                           // onPrimary: Colors.white,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -56,7 +105,8 @@ class PapPage extends StatelessWidget {
   }
 
   Future<List> _fetchPapHistorial(int? expedienteClinico) async {
-    final url = 'http://test.api.movil.cies.org.bo/resultado_pap_informado/list_pap_historial_con_resultado_informados_no_informados/?expediente_clinico=$expedienteClinico';
+    final url =
+        'http://test.api.movil.cies.org.bo/resultado_pap_informado/list_pap_historial_con_resultado_informados_no_informados/?expediente_clinico=$expedienteClinico';
     final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
@@ -69,5 +119,33 @@ class PapPage extends StatelessWidget {
 
   String _formatDate(String dateTime) {
     return dateTime.split('T')[0];
+  }
+
+  Future<void> _generatePdf(BuildContext context, Map item) async {
+    final pdf = pw.Document();
+    final nombresTipo = item['nombres_tipo'] as List;
+
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) => pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text('Resultado PAP', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold, color: PdfColors.purple)),
+            pw.SizedBox(height: 20),
+            pw.Text('Paciente: ${item['expediente_clinico']['nombre_paciente']}'),
+            pw.Text('Edad: ${item['expediente_clinico']['edad']}'),
+            pw.Text('Médico: ${item['comprobante_detalle']['nombre_medico']}'),
+            pw.Text('Fecha del Resultado: ${_formatDate(item['resultado_fecha'])}'),
+            pw.Text('Detalles: ${item['detalle'] ?? "No especificado"}'),
+            pw.SizedBox(height: 10),
+            pw.Text('Tipos:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+            ...nombresTipo.map((tipo) => pw.Text('- ${tipo['nombre']} (Sección: ${tipo['seccion']})')),
+          ],
+        ),
+      ),
+    );
+
+    // Mostrar el PDF generado
+    await Printing.layoutPdf(onLayout: (format) => pdf.save());
   }
 }

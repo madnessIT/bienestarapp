@@ -16,14 +16,14 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _fechaNacimientoController = TextEditingController();
   final TextEditingController _domicilioController = TextEditingController();
   final TextEditingController _documentoController = TextEditingController();
+  final TextEditingController _expedidoController = TextEditingController();
   final TextEditingController _celularController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _pinController = TextEditingController(); // Controlador para el PIN.
 
   final List<String> _sexoOptions = ['MA', 'FE'];
-  //String? _selectedSexo;
+  String? _selectedSexo;
 
-  final Map<String, int> _referenciaOptions = {
+  final Map<String, int> _referenciaOptions = <String, int>{
     'Servicios Medicos': 1,
     'Educadores': 2,
     'Profesores Lideres': 3,
@@ -39,31 +39,20 @@ class _RegisterPageState extends State<RegisterPage> {
   };
   String? _selectedReferencia;
 
-  final Map<String, int> _opcionesEC = {
-    'Soltero/a': 1,
-    'Casado/a': 2,
-    'Viudo/a': 3,
-    'Union Libre': 4,
-    'Separado/a': 5,
-    'Divorciado/a': 6,
-    'Concubinado/a': 7
-  };
-  String? _selectedopcionesEC;
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        _fechaNacimientoController.text = "${picked.toLocal()}".split(' ')[0];
+      });
+    }
+  }
 
-  final Map<String, int> _expedidoOptions = {
-    'Santa Cruz': 1,
-    'Cochabamba': 2,
-    'La Paz': 3,
-    'Oruro': 4,
-    'Pando': 5,
-    'Beni': 6,
-    'Chuquisaca': 7,
-    'Potosi': 8,
-    'Tarija': 9
-  };
-  String? _selectedexpedido;
-
-  bool _isPinEnabled = false; // Estado para habilitar/deshabilitar la caja de texto del PIN.
   String? registroStatus;
 
   final String apiUrl = 'http://test.api.movil.cies.org.bo/afiliacion/';
@@ -76,10 +65,10 @@ class _RegisterPageState extends State<RegisterPage> {
       "nombres": _nombresController.text,
       "paterno": _paternoController.text,
       "materno": _maternoController.text,
-      "expedido": _expedidoOptions[_selectedexpedido] ?? 0,
+      "expedido": 1, // Ejemplo
       "domicilio": _domicilioController.text,
       "documento": _documentoController.text,
-      "sexo":_sexoOptions ,
+      "sexo": _selectedSexo ?? "MA",
       "tipo_documento": "CIN",
       "estadocivil": 1,
       "celular": _celularController.text,
@@ -87,8 +76,20 @@ class _RegisterPageState extends State<RegisterPage> {
       "expedienteclinico": {
         "telefono": _celularController.text,
         "email": _emailController.text,
+        "procedencia_pais": 1,
+        "procedencia_departamento": 1,
+        "residencia_pais": 1,
+        "residencia_departamento": 1,
+        "residencia_municipio": 1,
+        "estado_civil": 1,
+        "nivel_instruccion": 1,
+        "ocupacion": 1,
+        "idioma_materno": 1,
+        "idioma_hablado": 1,
+        "etnia": 1,
         "referencia": _referenciaOptions[_selectedReferencia] ?? 0,
-        "estado_civil": _opcionesEC[_selectedopcionesEC] ?? 0,
+        "identidad_genero": 1,
+        "orientacion_sexual": null,
         "regional": 2
       }
     };
@@ -106,7 +107,6 @@ class _RegisterPageState extends State<RegisterPage> {
       if (response.statusCode == 200) {
         setState(() {
           registroStatus = 'Paciente registrado con éxito.';
-          _isPinEnabled = true; // Habilitar el campo del PIN.
         });
       } else {
         setState(() {
@@ -114,17 +114,10 @@ class _RegisterPageState extends State<RegisterPage> {
         });
       }
     } catch (e) {
-      // Imprime el error en la consola
-    print('Error de conexión: $e');
       setState(() {
         registroStatus = 'Error en la conexión';
       });
     }
-  }
-
-  void confirmarPin() {
-    // Lógica para confirmar el PIN.
-    print('PIN ingresado: ${_pinController.text}');
   }
 
   @override
@@ -137,23 +130,80 @@ class _RegisterPageState extends State<RegisterPage> {
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: <Widget>[
-            // Otros campos...
+            TextField(
+              controller: _nombresController,
+              decoration: const InputDecoration(labelText: 'Nombres'),
+            ),
+            TextField(
+              controller: _paternoController,
+              decoration: const InputDecoration(labelText: 'Apellido Paterno'),
+            ),
+            TextField(
+              controller: _maternoController,
+              decoration: const InputDecoration(labelText: 'Apellido Materno'),
+            ),
+            TextField(
+              controller: _fechaNacimientoController,
+              decoration: const InputDecoration(labelText: 'Fecha de Nacimiento (YYYY-MM-DD)'),
+              readOnly: true,
+              onTap: () => _selectDate(context),
+            ),
+            TextField(
+              controller: _domicilioController,
+              decoration: const InputDecoration(labelText: 'Domicilio'),
+            ),
+            TextField(
+              controller: _documentoController,
+              decoration: const InputDecoration(labelText: 'Documento de Identidad'),
+            ),
+            TextField(
+              controller: _expedidoController,
+              decoration: const InputDecoration(labelText: 'Expedido en'),
+            ),
+            DropdownButtonFormField<String>(
+              value: _selectedSexo,
+              decoration: const InputDecoration(labelText: 'Sexo MA / FE'),
+              items: _sexoOptions.map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                setState(() {
+                  _selectedSexo = newValue;
+                });
+              },
+            ),
+            TextField(
+              controller: _celularController,
+              decoration: const InputDecoration(labelText: 'Celular'),
+            ),
+            TextField(
+              controller: _emailController,
+              decoration: const InputDecoration(labelText: 'Email'),
+            ),
+            DropdownButtonFormField<String>(
+              value: _selectedReferencia,
+              decoration: const InputDecoration(labelText: '¿Cómo conoció BIENESTAR?'),
+              items: _referenciaOptions.keys.map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                setState(() {
+                  _selectedReferencia = newValue;
+                });
+              },
+            ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: registrarPaciente,
               child: const Text("Registrar Paciente"),
             ),
             const SizedBox(height: 20),
-            if (_isPinEnabled) ...[
-              TextField(
-                controller: _pinController,
-                decoration: const InputDecoration(labelText: 'Ingrese el PIN'),
-              ),
-              ElevatedButton(
-                onPressed: confirmarPin,
-                child: const Text("Confirmar PIN"),
-              ),
-            ],
             registroStatus != null
                 ? Text(
                     registroStatus!,

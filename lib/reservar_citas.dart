@@ -8,25 +8,28 @@ class ReservarCitasPage extends StatefulWidget {
   const ReservarCitasPage({super.key});
 
   @override
-  _ReservarCitasPageState createState() => _ReservarCitasPageState();
+  State<ReservarCitasPage> createState() => _ReservarCitasPageState();
 }
 
 class _ReservarCitasPageState extends State<ReservarCitasPage> {
   DateTime? _selectedDate;
-  String? _selectedRegionalId;
+  String? _selectedRegionalId = '1';
   bool _isLoadingRegional = true;
   List<dynamic> regionales = [];
 
   @override
   void initState() {
     super.initState();
+    _selectedDate = DateTime.now(); // Inicializar la fecha seleccionada con la fecha actual
+    Provider.of<FechaProvider>(context, listen: false)
+        .setFecha(_selectedDate!.toIso8601String().split('T')[0]);
     _fetchRegionales();
   }
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: _selectedDate ?? DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime(2101),
     );
@@ -48,6 +51,13 @@ class _ReservarCitasPageState extends State<ReservarCitasPage> {
         setState(() {
           regionales = data.where((regional) => regional['activo'] == true).toList();
           _isLoadingRegional = false;
+
+          // Verificar si el ID 1 existe en la lista de regionales activos
+          if (regionales.any((regional) => regional['id'].toString() == '1')) {
+            _selectedRegionalId = '1'; // Confirmar que el ID 1 sea el valor seleccionado
+          } else if (regionales.isNotEmpty) {
+            _selectedRegionalId = regionales.first['id'].toString(); // Seleccionar el primero si no existe el ID 1
+          }
         });
       } else {
         _showError('Error al obtener las regionales. Código: ${response.statusCode}');
@@ -81,10 +91,10 @@ class _ReservarCitasPageState extends State<ReservarCitasPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Reservar Cita Medica',
+          'Reservar Cita Médica',
           style: TextStyle(
-            color: Colors.white,  // Cambiar el color del texto a blanco
-            fontWeight: FontWeight.bold, // Fuente en negrita
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
           ),
         ),
         backgroundColor: const Color.fromARGB(255, 1, 179, 45),
@@ -95,10 +105,9 @@ class _ReservarCitasPageState extends State<ReservarCitasPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Logo en la parte superior
               Center(
                 child: Image.asset(
-                  'assets/images/logo.png',  // Ruta de tu logo en assets
+                  'assets/images/logo.png',
                   height: 100,
                   fit: BoxFit.contain,
                 ),
@@ -148,9 +157,7 @@ class _ReservarCitasPageState extends State<ReservarCitasPage> {
       onPressed: () => _selectDate(context),
       icon: const Icon(Icons.calendar_today, color: Colors.white),
       label: Text(
-        _selectedDate == null
-            ? 'Seleccione la Fecha'
-            : 'Fecha Seleccionada: ${_selectedDate!.toString().split(' ')[0]}',
+        'Fecha Seleccionada: ${_selectedDate!.toString().split(' ')[0]}',
         style: const TextStyle(color: Colors.white, fontSize: 16),
       ),
       style: ElevatedButton.styleFrom(
@@ -162,43 +169,41 @@ class _ReservarCitasPageState extends State<ReservarCitasPage> {
       ),
     );
   }
-Widget _buildRegionalDropdown() {
-  return _isLoadingRegional
-      ? const Center(child: CircularProgressIndicator())
-      : DropdownButtonFormField<String>(
-          value: _selectedRegionalId,
-          decoration: InputDecoration(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-          hint: const Text('Seleccione la Regional'),
-          onChanged: (String? newValue) {
-            setState(() {
-              _selectedRegionalId = newValue;
-              if (newValue != null) {
-                final regional = regionales.firstWhere(
-                  (r) => r['id'].toString() == newValue,
-                  orElse: () => null,
-                );
-                final regionalNombre = regional != null ? regional['nombre'] : '';
-                Provider.of<FechaProvider>(context, listen: false)
-                  ..setDepartamentoId(newValue)
-                  ..setDepartamentoNombre(regionalNombre);
-              }
-            });
-          },
-          items: regionales
-              .where((regional) => regional['id'] == 1) // Filtrar solo regionales con ID 1
-              .map((regional) {
-                return DropdownMenuItem<String>(
-                  value: regional['id'].toString(),
-                  child: Text(regional['nombre']),
-                );
-              }).toList(),
-        );
-}
 
- 
+  Widget _buildRegionalDropdown() {
+    return _isLoadingRegional
+        ? const Center(child: CircularProgressIndicator())
+        : DropdownButtonFormField<String>(
+            value: _selectedRegionalId,
+            decoration: InputDecoration(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            hint: const Text('Seleccione la Regional'),
+            onChanged: (String? newValue) {
+              setState(() {
+                _selectedRegionalId = newValue;
+                if (newValue != null) {
+                  final regional = regionales.firstWhere(
+                    (r) => r['id'].toString() == newValue,
+                    orElse: () => null,
+                  );
+                  final regionalNombre = regional != null ? regional['nombre'] : '';
+                  Provider.of<FechaProvider>(context, listen: false)
+                    ..setDepartamentoId(newValue)
+                    ..setDepartamentoNombre(regionalNombre);
+                }
+              });
+            },
+            items: regionales
+                .map((regional) {
+                  return DropdownMenuItem<String>(
+                    value: regional['id'].toString(),
+                    child: Text(regional['nombre']),
+                  );
+                }).toList(),
+          );
+  }
 }
