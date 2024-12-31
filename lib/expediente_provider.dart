@@ -7,6 +7,7 @@ class ExpedienteProvider with ChangeNotifier {
   String? _razonSocial;
   // Getter para expedienteclinicoId
   int? get expedienteclinicoId => _expedienteclinicoId;
+  String? _documento;
 
   // Setter para expedienteclinicoId
   void setExpedienteclinicoId(int id) {
@@ -38,6 +39,13 @@ class ExpedienteProvider with ChangeNotifier {
     _razonSocial = razonSocial;
     notifyListeners(); // Notifica a los widgets dependientes para que se actualicen
   }
+// Getter para documento
+  String? get documento => _documento;
 
+  // Setter para documento
+  void setdocumento(String? documento) {
+    _documento = documento;
+    notifyListeners(); // Notifica a los widgets dependientes para que se actualicen
+  }
 
 }

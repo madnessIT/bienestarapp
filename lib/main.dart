@@ -50,7 +50,7 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => const LoginPage(),
+        '/': (context) =>  LoginPage(),
         '/register_page': (context) => const RegisterPage(),
         '/menu_paciente': (context) => const MenuPacientePage(),
         '/servicios_medicos': (context) => const ServiciosMedicosPage(),
@@ -61,7 +61,7 @@ class MyApp extends StatelessWidget {
         '/sucursal_atencion': (context) => const SucursalAtencionPage(),
         '/servicio_atencion': (context) => const ServiciosAtencionPage(),
         '/medico_atencion': (context) => const MedicoAtencionPage (),
-        '/modify_page':(context) => const ModificarPacientePage (),
+        '/modify_page':(context) =>  ModificarPacientePage (),
         '/mis_reservas':(context) =>  const MisReservasPage (),
         '/servicios_medicos/recetas': (context) => const RecetasPage(),
         '/servicios_medicos/signos_vitales': (context) => const SignosVitalesPage(),

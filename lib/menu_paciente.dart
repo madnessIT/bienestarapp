@@ -6,7 +6,13 @@ class MenuPacientePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Recibir los argumentos pasados desde login_page.dart
-    final Map<String, dynamic> args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    final Map<String, dynamic>? args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+    if (args == null) {
+      return const Scaffold(
+        body: Center(child: Text('Error: No se recibieron los datos del paciente.')),
+      );
+    }
 
     // Obtener el nombre y el CI del paciente
     final String? nombre = args['nombre'];
@@ -97,7 +103,7 @@ class MenuPacientePage extends StatelessWidget {
                 Center(
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.pop(context); // Regresar al login
+                      Navigator.popUntil(context, ModalRoute.withName('/login')); // Regresar al login
                     },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
@@ -136,6 +142,14 @@ class MenuPacientePage extends StatelessWidget {
           }
         },
       ),
+      // Mostrar un popup con la imagen de promoción
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _showPromotionDialog(context);
+        },
+        child: const Icon(Icons.star),
+        backgroundColor: const Color.fromARGB(255, 1, 179, 45),
+      ),
     );
   }
 
@@ -158,6 +172,40 @@ class MenuPacientePage extends StatelessWidget {
           Navigator.pushNamed(context, routeName);
         },
       ),
+    );
+  }
+
+  // Función para mostrar el pop-up
+  void _showPromotionDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          contentPadding: EdgeInsets.all(0),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Imagen de la promoción
+              Image.asset(
+                'assets/images/promocion.png', // Ruta a tu imagen de promoción
+                fit: BoxFit.cover,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Cerrar el pop-up
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 1, 179, 45),
+                  ),
+                  child: const Text('Cerrar'),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

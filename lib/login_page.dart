@@ -64,9 +64,10 @@ class _LoginPageState extends State<LoginPage> {
           Provider.of<ExpedienteProvider>(context, listen: false).setnit(nit); // Guarda el nit globalmente
           String? razonSocial = data['razon_social']; // Obtén el razon_social del expediente clínico
           Provider.of<ExpedienteProvider>(context, listen: false).setrazonSocial(razonSocial); // Guarda el nit globalmente
-          print(' razon Social: $razonSocial');
-          print(' Nit: $nit');
-          
+          String? documento = data['documento']; // Obtén el ci
+          Provider.of<ExpedienteProvider>(context, listen: false).setdocumento(documento); // Guarda documento globalmente
+
+                    
              setState(() {
             _pinApp = data['expedienteclinico']['pin_app'].toString();
             _nombre = data['nombres'];

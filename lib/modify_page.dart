@@ -1,261 +1,103 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
-
-import '/expediente_provider.dart';
+import 'expediente_provider.dart';
 
 class ModificarPacientePage extends StatefulWidget {
-  const ModificarPacientePage({super.key});
-
   @override
   _ModificarPacientePageState createState() => _ModificarPacientePageState();
 }
 
 class _ModificarPacientePageState extends State<ModificarPacientePage> {
-  final _formKey = GlobalKey<FormState>();
-  final Map<String, dynamic> _formData = {
-    "nombres": "",
-    "paterno": "",
-    "materno": "",
-    "sexo": "",
-    "fecha_nacimiento": "",
-    "documento": "",
-    "expedido": "",
-    "domicilio": "",
-    "celular": "",
-    "email": "",
-    "estado_civil": "",
-    "procedencia_pais": "",
-    "procedencia_departamento": "",
-    "residencia_pais": "",
-    "residencia_departamento": "",
-    "residencia_municipio": "",
-    "ocupacion": "",
-    "referencia": "",
-    "identidad_genero": ""
-  };
+  Map<String, dynamic>? loginData;
+  bool isLoading = false;
 
-  bool _isLoading = false;
-  String? _statusMessage;
+  Future<void> fetchLoginData(documento) async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final response = await http.post(
+        Uri.parse('http://test.api.movil.cies.org.bo/afiliacion/login_codigo_tes/?documento=$documento'),
+        //headers: {'Content-Type': 'application/json'},
+        //body: json.encode({'documento': documento}),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          loginData = json.decode(response.body);
+        });
+      } else {
+        print('Respuesta del servidor: ${response.body}');
+        throw Exception('Error al obtener datos: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error: $e');
+      setState(() {
+        loginData = null;
+      });
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    _loadPatientData();
-  }
-
-  // Cargar datos del paciente
-  Future<void> _loadPatientData() async {
-    setState(() {
-      _isLoading = true;
-      _statusMessage = null;
-    });
-
-    final expedienteClinicoId = Provider.of<ExpedienteProvider>(context, listen: false).expedienteclinicoId;
-    
-    if (expedienteClinicoId == null) {
-      setState(() {
-        _statusMessage = "Expediente clínico no encontrado.";
-        _isLoading = false;
-      });
-      return;
-    }
-
-    final url = Uri.parse('http://test.api.movil.cies.org.bo/afiliacion/pacientes/$expedienteClinicoId/');
-    try {
-      final response = await http.get(url);
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');  // Para ver el contenido completo
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        
-        setState(() {
-          _formData['nombres'] = data['nombres'] ?? '';
-          _formData['paterno'] = data['paterno'] ?? '';
-          _formData['materno'] = data['materno'] ?? '';
-          _formData['sexo'] = data['sexo'] ?? '';
-          _formData['fecha_nacimiento'] = data['fecha_nacimiento'] ?? '';
-          _formData['documento'] = data['documento'] ?? '';
-          _formData['expedido'] = data['expedido'] ?? '';
-          _formData['domicilio'] = data['domicilio'] ?? '';
-          _formData['celular'] = data['expedienteclinico']['telefono'] ?? '';
-          _formData['email'] = data['expedienteclinico']['email'] ?? '';
-          _formData['estado_civil'] = data['expedienteclinico']['estado_civil'] ?? '';
-          _formData['procedencia_pais'] = data['expedienteclinico']['procedencia_pais'] ?? '';
-          _formData['procedencia_departamento'] = data['expedienteclinico']['procedencia_departamento'] ?? '';
-          _formData['residencia_pais'] = data['expedienteclinico']['residencia_pais'] ?? '';
-          _formData['residencia_departamento'] = data['expedienteclinico']['residencia_departamento'] ?? '';
-          _formData['residencia_municipio'] = data['expedienteclinico']['residencia_municipio'] ?? '';
-          _formData['ocupacion'] = data['expedienteclinico']['ocupacion'] ?? '';
-          _formData['referencia'] = data['expedienteclinico']['referencia'] ?? '';
-          _formData['identidad_genero'] = data['expedienteclinico']['identidad_genero'] ?? '';
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          _statusMessage = "Error al cargar los datos del paciente.";
-          _isLoading = false;
-        });
-      }
-    } 
-    
-    catch (e) {
-      setState(() {
-        _statusMessage = "Error en la conexión: $e";
-        _isLoading = false;
-      });
-    }
-  }
-
-  // Actualizar los datos del paciente
-  Future<void> _updatePaciente(int expedienteClinicoId) async {
-    setState(() {
-      _isLoading = true;
-      _statusMessage = null;
-    });
-
-    final url = Uri.parse('http://test.api.movil.cies.org.bo/afiliacion/pacientes/$expedienteClinicoId/');
-    try {
-      final response = await http.patch(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          ..._formData,
-          "expedienteclinico": {
-            "regional": _formData["expedido"],
-            "telefono": _formData["celular"],
-            "email": _formData["email"],
-            "estado_civil": _formData["estado_civil"],
-            "procedencia_pais": _formData["procedencia_pais"],
-            "procedencia_departamento": _formData["procedencia_departamento"],
-            "residencia_pais": _formData["residencia_pais"],
-            "residencia_departamento": _formData["residencia_departamento"],
-            "residencia_municipio": _formData["residencia_municipio"],
-            "ocupacion": _formData["ocupacion"],
-            "referencia": _formData["referencia"],
-            "identidad_genero": _formData["identidad_genero"],
-          },
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        setState(() {
-          _statusMessage = "Datos actualizados exitosamente.";
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          _statusMessage = "Error al actualizar datos. Código: ${response.statusCode}";
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _statusMessage = "Error de conexión: $e";
-        _isLoading = false;
-      });
-    }
+    // Obtener el documento desde el Provider en el contexto
+    final documento = Provider.of<ExpedienteProvider>(context, listen: false).documento;
+    fetchLoginData(documento);
   }
 
   @override
   Widget build(BuildContext context) {
-    final expedienteClinicoId = Provider.of<ExpedienteProvider>(context).expedienteclinicoId;
-
-    if (expedienteClinicoId == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text("Modificar Paciente")),
-        body: const Center(
-          child: Text("Error: expediente clínico no encontrado."),
-        ),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Modificar Paciente"),
-        backgroundColor: Colors.blueAccent,
+        title: Text('Datos de Login'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : Form(
-                key: _formKey,
-                child: ListView(
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : loginData != null
+              ? ListView(
+                  padding: EdgeInsets.all(16.0),
                   children: [
-                    ..._buildFormFields(),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          _formKey.currentState!.save();
-                          _updatePaciente(expedienteClinicoId);
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                      child: const Text("Actualizar Datos", style: TextStyle(fontSize: 16)),
-                    ),
-                    const SizedBox(height: 20),
-                    if (_statusMessage != null)
-                      Text(
-                        _statusMessage!,
-                        style: TextStyle(
-                          color: _statusMessage!.contains("exitosamente") ? Colors.green : Colors.red,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
+                    //Text('ID: ${loginData!['id']}'),
+                    Text('Nombres: ${loginData!['nombres']}'),
+                    Text('Paterno: ${loginData!['paterno']}'),
+                    Text('Materno: ${loginData!['materno']}'),
+                    Text('Sexo: ${loginData!['sexo']}'),
+                    Text('Fecha de Nacimiento: ${loginData!['fecha_nacimiento']}'),
+                    Text('Documento: ${loginData!['documento']}'),
+                    Text('Domicilio: ${loginData!['domicilio']}'),
+                    Text('NIT: ${loginData!['nit']}'),
+                    Text('Razón Social: ${loginData!['razon_social']}'),
+                    Text('Tipo Documento: ${loginData!['tipo_documento']}'),
+                    Text('Expedido: ${loginData!['expedido']}'),
+                    if (loginData!['expedienteclinico'] != null) ...[
+                      Text('Expediente Clínico ID: ${loginData!['expedienteclinico']['id']}'),
+                      Text('Teléfono: ${loginData!['expedienteclinico']['telefono']}'),
+                      Text('Email: ${loginData!['expedienteclinico']['email']}'),
+                      Text('Procedencia País: ${loginData!['expedienteclinico']['procedencia_pais']}'),
+                      Text('Residencia Departamento: ${loginData!['expedienteclinico']['residencia_departamento']}'),
+                      Text('Referencia: ${loginData!['expedienteclinico']['referencia']}'),
+                      Text('PIN App: ${loginData!['expedienteclinico']['pin_app']}'),
+                    ],
+                    if (loginData!['asegurado'] != null) ...[
+                      Text('Asegurado ID: ${loginData!['asegurado']['id']}'),
+                      Text('Seguro: ${loginData!['asegurado']['seguro']}'),
+                      Text('Tipo de Asegurado: ${loginData!['asegurado']['tipo_asegurado']}'),
+                      Text('Código de Asegurado: ${loginData!['asegurado']['codigo_asegurado']}'),
+                      Text('Fecha de Afiliación: ${loginData!['asegurado']['fecha_afiliacion']}'),
+                    ],
                   ],
+                )
+              : Center(
+                  child: Text('No se pudieron obtener los datos.'),
                 ),
-              ),
-      ),
-    );
-  }
-
-  List<Widget> _buildFormFields() {
-    return [
-      _buildTextField("Nombres", "nombres"),
-      _buildTextField("Apellido Paterno", "paterno"),
-      _buildTextField("Apellido Materno", "materno"),
-      _buildTextField("Sexo (M/F)", "sexo"),
-      _buildTextField("Fecha de Nacimiento (YYYY-MM-DD)", "fecha_nacimiento"),
-      _buildTextField("Documento de Identidad", "documento"),
-      _buildTextField("Expedido", "expedido"),
-      _buildTextField("Domicilio", "domicilio"),
-      _buildTextField("Celular", "celular"),
-      _buildTextField("Email", "email"),
-      _buildTextField("Estado Civil", "estado_civil"),
-      _buildTextField("País de Procedencia", "procedencia_pais"),
-      _buildTextField("Departamento de Procedencia", "procedencia_departamento"),
-      _buildTextField("País de Residencia", "residencia_pais"),
-      _buildTextField("Departamento de Residencia", "residencia_departamento"),
-      _buildTextField("Municipio de Residencia", "residencia_municipio"),
-      _buildTextField("Ocupación", "ocupacion"),
-      _buildTextField("Referencia", "referencia"),
-      _buildTextField("Identidad de Género", "identidad_genero"),
-    ];
-  }
-
-  Widget _buildTextField(String label, String key) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: TextFormField(
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-        initialValue: _formData[key],
-        onSaved: (value) {
-          _formData[key] = value;
-        },
-      ),
     );
   }
 }
