@@ -18,9 +18,26 @@ class PapPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Historial de PAP'),
-        backgroundColor: Colors.deepPurple,
+  title: const Text(
+    'Historial Papa Nicolau',
+    style: TextStyle(
+      color: Colors.white,
+      fontWeight: FontWeight.bold,
+    ),
+  ),
+  flexibleSpace: Container(
+    decoration: const BoxDecoration(
+      gradient: LinearGradient(
+        colors: [
+          Color.fromARGB(255, 1, 179, 45), // Verde        //const Color.fromARGB(255, 1, 179, 45),
+          Color.fromARGB(255, 0, 62, 143), // Azul
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
       ),
+    ),
+  ),
+),
       body: FutureBuilder(
         future: _fetchPapHistorial(expedienteClinico),
         builder: (context, snapshot) {

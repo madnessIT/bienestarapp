@@ -92,9 +92,26 @@ class _RecetasPageState extends State<RecetasPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Última Receta'),
-        backgroundColor: Colors.blueAccent,
+  title: const Text(
+    'Receta Medica',
+    style: TextStyle(
+      color: Colors.white,
+      fontWeight: FontWeight.bold,
+    ),
+  ),
+  flexibleSpace: Container(
+    decoration: const BoxDecoration(
+      gradient: LinearGradient(
+        colors: [
+          Color.fromARGB(255, 1, 179, 45), // Verde        //const Color.fromARGB(255, 1, 179, 45),
+          Color.fromARGB(255, 0, 62, 143), // Azul
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
       ),
+    ),
+  ),
+),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _hasError

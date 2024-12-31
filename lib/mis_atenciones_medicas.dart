@@ -6,16 +6,27 @@ class MisAtencionesMedicasPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Solicitud Atencion Medica',
-          style: TextStyle(
-            color: Colors.white,  // Cambiar el color del texto a blanco
-            fontWeight: FontWeight.bold, // Fuente en negrita
-          ),
-        ),
-        backgroundColor: const Color.fromARGB(255, 1, 179, 45),  // Color de fondo del AppBar
+     appBar: AppBar(
+  title: const Text(
+    'Solicitud de Atenciones Médicas',
+    style: TextStyle(
+      color: Colors.white,
+      fontWeight: FontWeight.bold,
+    ),
+  ),
+  flexibleSpace: Container(
+    decoration: const BoxDecoration(
+      gradient: LinearGradient(
+        colors: [
+          Color.fromARGB(255, 1, 179, 45), // Verde        //const Color.fromARGB(255, 1, 179, 45),
+          Color.fromARGB(255, 0, 62, 143), // Azul
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
       ),
+    ),
+  ),
+),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

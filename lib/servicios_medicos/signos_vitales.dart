@@ -65,12 +65,26 @@ class _SignosVitalesPageState extends State<SignosVitalesPage> {
   Widget build(BuildContext context) {
   return Scaffold(
     appBar: AppBar(
-      title: const Text(
-        'Signos Vitales',
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
-      backgroundColor: Colors.blueAccent,
+  title: const Text(
+    'Signos Vitales',
+    style: TextStyle(
+      color: Colors.white,
+      fontWeight: FontWeight.bold,
     ),
+  ),
+  flexibleSpace: Container(
+    decoration: const BoxDecoration(
+      gradient: LinearGradient(
+        colors: [
+          Color.fromARGB(255, 1, 179, 45), // Verde        //const Color.fromARGB(255, 1, 179, 45),
+          Color.fromARGB(255, 0, 62, 143), // Azul
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+    ),
+  ),
+),
     body: _isLoading
         ? const Center(
             child: CircularProgressIndicator(),
