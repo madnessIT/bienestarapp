@@ -6,14 +6,16 @@ class ContactanosPage extends StatelessWidget {
   const ContactanosPage({super.key});
 
   // Métodos para abrir los enlaces
-  Future<void> _launchFacebook() async {
-    final Uri url = Uri.parse('https://www.facebook.com/ClinicaBienestarSalud');
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
-      throw 'No se pudo abrir el enlace a Facebook';
-    }
+ Future<void> _launchFacebook() async {
+  final Uri url = Uri.parse('https://www.facebook.com/ClinicaBienestarSalud');
+  if (await canLaunchUrl(url)) {
+    await launchUrl(url, mode: LaunchMode.externalApplication);
+  } else {
+    debugPrint('No se pudo abrir el enlace a Facebook');
+    // Aquí puedes mostrar un mensaje al usuario
   }
+}
+
 
   Future<void> _launchWhatsApp() async {
     final Uri url = Uri.parse('https://wa.me/59169805848');
@@ -37,26 +39,26 @@ class ContactanosPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-  title: const Text(
-    'Contáctanos',
-    style: TextStyle(
-      color: Colors.white,
-      fontWeight: FontWeight.bold,
-    ),
-  ),
-  flexibleSpace: Container(
-    decoration: const BoxDecoration(
-      gradient: LinearGradient(
-        colors: [
-          Color.fromARGB(255, 1, 179, 45), // Verde        //const Color.fromARGB(255, 1, 179, 45),
-          Color.fromARGB(255, 0, 62, 143), // Azul
-        ],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
+        title: const Text(
+          'Contáctanos',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color.fromARGB(255, 1, 179, 45), // Verde
+                Color.fromARGB(255, 0, 62, 143), // Azul
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
       ),
-    ),
-  ),
-),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -67,6 +69,13 @@ class ContactanosPage extends StatelessWidget {
                 'assets/images/logo.png',
                 height: 120,
                 fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Icon(
+                    Icons.error,
+                    size: 120,
+                    color: Colors.red,
+                  );
+                },
               ),
             ),
             const SizedBox(height: 30),

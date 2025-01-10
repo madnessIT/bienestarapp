@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'expediente_provider.dart';
 
 class ModificarPacientePage extends StatefulWidget {
+  const ModificarPacientePage({super.key});
+
   @override
   _ModificarPacientePageState createState() => _ModificarPacientePageState();
 }
@@ -57,13 +59,13 @@ class _ModificarPacientePageState extends State<ModificarPacientePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Datos de Login'),
+        title: const Text('Datos de Login'),
       ),
       body: isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : loginData != null
               ? ListView(
-                  padding: EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(16.0),
                   children: [
                     //Text('ID: ${loginData!['id']}'),
                     Text('Nombres: ${loginData!['nombres']}'),
@@ -95,7 +97,7 @@ class _ModificarPacientePageState extends State<ModificarPacientePage> {
                     ],
                   ],
                 )
-              : Center(
+              : const Center(
                   child: Text('No se pudieron obtener los datos.'),
                 ),
     );

@@ -182,39 +182,41 @@ class _ReservarCitasPageState extends State<ReservarCitasPage> {
   }
 
   Widget _buildRegionalDropdown() {
-    return _isLoadingRegional
-        ? const Center(child: CircularProgressIndicator())
-        : DropdownButtonFormField<String>(
-            value: _selectedRegionalId,
-            decoration: InputDecoration(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
+  return _isLoadingRegional
+      ? const Center(child: CircularProgressIndicator())
+      : DropdownButtonFormField<String>(
+          value: _selectedRegionalId,
+          decoration: InputDecoration(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
             ),
-            hint: const Text('Seleccione la Regional'),
-            onChanged: (String? newValue) {
-              setState(() {
-                _selectedRegionalId = newValue;
-                if (newValue != null) {
-                  final regional = regionales.firstWhere(
-                    (r) => r['id'].toString() == newValue,
-                    orElse: () => null,
-                  );
-                  final regionalNombre = regional != null ? regional['nombre'] : '';
-                  Provider.of<FechaProvider>(context, listen: false)
-                    ..setDepartamentoId(newValue)
-                    ..setDepartamentoNombre(regionalNombre);
-                }
-              });
-            },
-            items: regionales
-                .map((regional) {
-                  return DropdownMenuItem<String>(
-                    value: regional['id'].toString(),
-                    child: Text(regional['nombre']),
-                  );
-                }).toList(),
-          );
-  }
+          ),
+          hint: const Text('Seleccione la Regional'),
+          onChanged: (String? newValue) {
+            setState(() {
+              _selectedRegionalId = newValue;
+              if (newValue != null) {
+                final regional = regionales.firstWhere(
+                  (r) => r['id'].toString() == newValue,
+                  orElse: () => null,
+                );
+                final regionalNombre = regional != null ? regional['nombre'] : '';
+                Provider.of<FechaProvider>(context, listen: false)
+                  ..setDepartamentoId(newValue)
+                  ..setDepartamentoNombre(regionalNombre);
+              }
+            });
+          },
+          items: regionales
+              .where((regional) => regional['id'].toString() == '1') // Filtrar por ID = 1
+              .map((regional) {
+                return DropdownMenuItem<String>(
+                  value: regional['id'].toString(),
+                  child: Text(regional['nombre']),
+                );
+              }).toList(),
+        );
+}
+
 }

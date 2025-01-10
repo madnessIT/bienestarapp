@@ -25,7 +25,6 @@ class _LoginPageState extends State<LoginPage> {
   String? _ci;
 
   final String apiUrl = 'http://test.api.movil.cies.org.bo/afiliacion/login_codigo_tes/';
-  ///afiliacion/cies-contigo/login_codigo_cies_contigo/';
 
   Future<void> loginPaciente(String documento) async {
     if (documento.isEmpty) {
@@ -49,26 +48,22 @@ class _LoginPageState extends State<LoginPage> {
         body: jsonEncode({}),
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');  // Imprimir el cuerpo de la respuesta
-      
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
 
         if (data.containsKey('expedienteclinico') && data['expedienteclinico']['pin_app'] != null) {
-          int expedienteId = data['expedienteclinico']['id']; // Obtén el ID del expediente clínico
-          Provider.of<ExpedienteProvider>(context, listen: false).setExpedienteclinicoId(expedienteId); // Guarda el ID globalmente
-          int expedienteClinico = data['expedienteclinico']['expediente_clinico']; // Obtén el ID del expediente clínico
-          Provider.of<ExpedienteProvider>(context, listen: false).setExpedienteClinico(expedienteClinico); // Guarda el ID globalmente
-          String? nit = data['nit']; // Obtén el NIT del expediente clínico
-          Provider.of<ExpedienteProvider>(context, listen: false).setnit(nit); // Guarda el nit globalmente
-          String? razonSocial = data['razon_social']; // Obtén el razon_social del expediente clínico
-          Provider.of<ExpedienteProvider>(context, listen: false).setrazonSocial(razonSocial); // Guarda el nit globalmente
-          String? documento = data['documento']; // Obtén el ci
-          Provider.of<ExpedienteProvider>(context, listen: false).setdocumento(documento); // Guarda documento globalmente
+          int expedienteId = data['expedienteclinico']['id'];
+          Provider.of<ExpedienteProvider>(context, listen: false).setExpedienteclinicoId(expedienteId);
+          int expedienteClinico = data['expedienteclinico']['expediente_clinico'];
+          Provider.of<ExpedienteProvider>(context, listen: false).setExpedienteClinico(expedienteClinico);
+          String? nit = data['nit'];
+          Provider.of<ExpedienteProvider>(context, listen: false).setnit(nit);
+          String? razonSocial = data['razon_social'];
+          Provider.of<ExpedienteProvider>(context, listen: false).setrazonSocial(razonSocial);
+          String? documento = data['documento'];
+          Provider.of<ExpedienteProvider>(context, listen: false).setdocumento(documento);
 
-                    
-             setState(() {
+          setState(() {
             _pinApp = data['expedienteclinico']['pin_app'].toString();
             _nombre = data['nombres'];
             _paterno = data['paterno'];
@@ -138,7 +133,10 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Clinica Bienestar")),
+      //appBar: AppBar(
+        //title: const Text("Clínica Bienestar"),
+        //backgroundColor: Color.fromARGB(255, 0, 62, 143),
+      //),
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -173,6 +171,7 @@ class _LoginPageState extends State<LoginPage> {
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
+                          color: Color.fromARGB(255, 0, 62, 143),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -190,6 +189,12 @@ class _LoginPageState extends State<LoginPage> {
                       _isLoading
                           ? const CircularProgressIndicator()
                           : ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color.fromARGB(255, 1, 179, 45),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
                               onPressed: () => loginPaciente(_documentoController.text),
                               child: const Text("Login"),
                             ),
@@ -207,6 +212,12 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         const SizedBox(height: 20),
                         ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color.fromARGB(255, 0, 62, 143),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
                           onPressed: confirmarPin,
                           child: const Text("Confirmar PIN"),
                         ),
@@ -214,6 +225,12 @@ class _LoginPageState extends State<LoginPage> {
                       if (_showRegisterButton) ...[
                         const SizedBox(height: 20),
                         ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color.fromARGB(255, 0, 62, 143),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
                           onPressed: () => Navigator.pushNamed(context, '/register_page'),
                           child: const Text("Registrar Paciente"),
                         ),
@@ -226,7 +243,7 @@ class _LoginPageState extends State<LoginPage> {
                   Text(
                     loginStatus!,
                     style: TextStyle(
-                      color: loginStatus!.contains('éxito') ? Colors.green : Colors.red,
+                      color: loginStatus!.contains('éxito') ? Color.fromARGB(255, 1, 179, 45) : Colors.red,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

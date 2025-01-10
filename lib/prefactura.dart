@@ -89,20 +89,6 @@ class PrefacturaPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildSectionTitle(context, 'Turno Seleccionado:'),
-                      _buildInfoRow('Fecha:', fecha),
-                      _buildInfoRow('Hora:', '$horaInicio - $horaFin'),
-                      _buildInfoRow('Médico:', medico),
-                      const SizedBox(height: 16),
-
-                      _buildSectionTitle(context, 'Sucursal:'),
-                      _buildInfoRow('Descripción:', sucursalProvider.descripcion),
-                      const SizedBox(height: 16),
-
-                      _buildSectionTitle(context, 'Servicios Disponibles:'),
-                      ...servicios.map((servicio) => _buildServicioCard(servicio)),
-                      const SizedBox(height: 16),
-
                       _buildSectionTitle(context, 'Datos para factura:'),
                       TextField(
                         controller: nitController,
@@ -120,6 +106,22 @@ class PrefacturaPage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 24),
+                      //_buildSectionTitle(context, 'Turno Seleccionado:'),
+                      //_buildInfoRow('Fecha:', fecha),
+                      //_buildInfoRow('Hora:', '$horaInicio - $horaFin'),
+                      //_buildInfoRow('Médico:', medico),
+                      const SizedBox(height: 16),
+
+                      //_buildSectionTitle(context, 'Sucursal:'),
+                      //_buildInfoRow('Descripción:', sucursalProvider.descripcion),
+                      //const SizedBox(height: 16),
+
+                      _buildSectionTitle(context, 'Datos Para la Reserva:'),
+                     ...servicios.map((servicio) => _buildServicioCard(
+                       servicio, fecha, horaInicio, horaFin, medico,
+                        sucursalProvider.descripcion,)),
+
+                      const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: () {
                           // Lógica para guardar o continuar
@@ -157,22 +159,33 @@ class PrefacturaPage extends StatelessWidget {
     );
   }
 
-  Widget _buildServicioCard(Map<String, dynamic> servicio) {
-    final precio = servicio['precio'] ?? 'No disponible';
-    return Card(
+Widget _buildServicioCard(Map<String, dynamic> servicio, String fecha, String horaInicio, String horaFin, String medico, String sucursalDescripcion) {
+  final precio = servicio['precio'] ?? 'No disponible';
+  return Container(
+    width: double.infinity, // Ocupa todo el ancho disponible
+    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+    child: Card(
       elevation: 3,
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Servicio: ${servicio['nombre']}',
+            Text('Sucursal: $sucursalDescripcion',
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text(' ${servicio['nombre']}',
                 style: const TextStyle(fontWeight: FontWeight.bold)),
             Text('Precio: ${precio['precio']} Bs.'),
+            Text('Médico: $medico'),
+            Text('Fecha: $fecha'),
+            Text('Hora: $horaInicio - $horaFin'),
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
 }

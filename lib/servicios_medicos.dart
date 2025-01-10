@@ -79,7 +79,7 @@ class ServiciosMedicosPage extends StatelessWidget {
                     subtitle: 'Consulta los resultados de tus estudios.',
                     onTap: () {
                       // Acción para redirigir a Estudios de PAP
-                      Navigator.pushNamed(context, '/pap');
+                      Navigator.pushNamed(context, '/servicios_medicos/pap');
                     },
                   ),
                   _buildMenuItem(

@@ -17,7 +17,7 @@ import 'sucursal_atencion.dart';
 import 'medico_atencion.dart';
 import 'modify_page.dart';
 import 'mis_reservas.dart';
-import 'pap.dart';
+import 'servicios_medicos/pap.dart';
 import '/servicios_medicos/recetas.dart';
 import '/servicios_medicos/signos_vitales.dart';
 import '/servicios_medicos/laboratorios.dart';
@@ -66,8 +66,8 @@ class MyApp extends StatelessWidget {
         '/servicios_medicos/recetas': (context) => const RecetasPage(),
         '/servicios_medicos/signos_vitales': (context) => const SignosVitalesPage(),
         '/servicios_medicos/laboratorios': (context) => const LaboratoriosPage(),
-        '/captura_hibrida': (context) => const CapturaHibridaHistorialPage(),
-        '/pap': (context) =>  const PapPage(),
+        '/servicios_medicos/captura_hibrida': (context) => const CapturaHibridaHistorialPage(),
+        '/servicios_medicos/pap': (context) =>  const PapPage(),
         '/prefactura': (context) =>  const PrefacturaPage(),
 
       },

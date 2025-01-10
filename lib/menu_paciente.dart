@@ -18,7 +18,7 @@ class MenuPacientePage extends StatelessWidget {
     final String? nombre = args['nombre'];
     final String? paterno = args['paterno'];
     final String? materno = args['materno'];
-    final String ci = args['ci'];
+   // final String ci = args['ci'];
 
     return Scaffold(
       appBar: AppBar(
@@ -60,21 +60,38 @@ class MenuPacientePage extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 // Mostrar el nombre y el CI del paciente
-                Text(
-                  'Bienvenido, $nombre $paterno $materno',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                Text(
-                  'CI: $ci',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    color: Colors.black,
-                  ),
-                ),
+                Container(
+  padding: const EdgeInsets.all(16.0),
+  margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+  decoration: BoxDecoration(
+    color: Colors.blueAccent.withOpacity(0.1),
+    borderRadius: BorderRadius.circular(10.0),
+    border: Border.all(color: Colors.blueAccent),
+  ),
+  child: Row(
+    children: [
+      const Icon(Icons.person, color: Color.fromARGB(255, 1, 179, 45)),
+      const SizedBox(width: 10),
+      Expanded(
+        child: Text(
+          'Bienvenido: $nombre $paterno $materno',
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+      ),
+    ],
+  ),
+),
+        //        Text(
+                 // 'CI: $ci',
+                  //style: const TextStyle(
+                    //fontSize: 18,
+                    //color: Colors.black,
+                  //),
+               // ),
                 const SizedBox(height: 20),
                 // Opciones del menú
                 Expanded(
@@ -84,28 +101,28 @@ class MenuPacientePage extends StatelessWidget {
                         context,
                         icon: Icons.local_hospital,
                         title: 'Servicios médicos',
-                        color: Colors.blue,
+                        color: const Color.fromARGB(255, 0, 62, 143),
                         routeName: '/mis_atenciones_medicas',
                       ),
                       _buildMenuOption(
                         context,
                         icon: Icons.receipt,
                         title: 'Mis facturas',
-                        color: Colors.green,
+                        color:const Color.fromARGB(255, 1, 179, 45),
                         routeName: '/mis_facturas',
                       ),
                       _buildMenuOption(
                         context,
                         icon: Icons.medical_services,
                         title: 'Mis atenciones médicas',
-                        color: const Color.fromARGB(255, 1, 179, 45),
+                        color: const Color.fromARGB(255, 0, 62, 143),
                         routeName: '/servicios_medicos',
                       ),
                       _buildMenuOption(
                         context,
                         icon: Icons.contact_phone,
                         title: 'Contáctanos',
-                        color: Colors.orangeAccent,
+                        color: const Color.fromARGB(255, 1, 179, 45),
                         routeName: '/contactanos',
                       ),
                     ],

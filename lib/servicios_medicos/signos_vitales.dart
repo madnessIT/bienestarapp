@@ -25,7 +25,8 @@ class _SignosVitalesPageState extends State<SignosVitalesPage> {
 
   Future<void> _fetchSignosVitales() async {
     try {
-      final expedienteProvider = Provider.of<ExpedienteProvider>(context, listen: false);
+      final expedienteProvider =
+          Provider.of<ExpedienteProvider>(context, listen: false);
       final expedienteClinicoId = expedienteProvider.expedienteclinicoId;
 
       if (expedienteClinicoId == null) {
@@ -63,126 +64,147 @@ class _SignosVitalesPageState extends State<SignosVitalesPage> {
 
   @override
   Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-  title: const Text(
-    'Signos Vitales',
-    style: TextStyle(
-      color: Colors.white,
-      fontWeight: FontWeight.bold,
-    ),
-  ),
-  flexibleSpace: Container(
-    decoration: const BoxDecoration(
-      gradient: LinearGradient(
-        colors: [
-          Color.fromARGB(255, 1, 179, 45), // Verde        //const Color.fromARGB(255, 1, 179, 45),
-          Color.fromARGB(255, 0, 62, 143), // Azul
-        ],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Signos Vitales',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color.fromARGB(255, 1, 179, 45), // Verde
+                Color.fromARGB(255, 0, 62, 143), // Azul
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
       ),
-    ),
-  ),
-),
-    body: _isLoading
-        ? const Center(
-            child: CircularProgressIndicator(),
-          )
-        : _hasError
+      body: Container(
+        color: Colors.white, // Fondo blanco
+        child: _isLoading
             ? const Center(
-                child: Text(
-                  'Error al cargar los signos vitales.',
-                  style: TextStyle(fontSize: 18, color: Colors.red, fontWeight: FontWeight.bold),
+                child: CircularProgressIndicator(
+                  color: Color.fromARGB(255, 1, 179, 45),
                 ),
               )
-            : Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12.0),
-                      decoration: BoxDecoration(
-                        color: Colors.blue[50],
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.3),
-                            spreadRadius: 2,
-                            blurRadius: 5,
-                            offset: const Offset(0, 3),
+            : _hasError
+                ? const Center(
+                    child: Text(
+                      'Error al cargar los signos vitales.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  )
+                : Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                spreadRadius: 3,
+                                blurRadius: 7,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: const Text(
-                        'Última Toma de Signos Vitales',
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.blueAccent),
-                        textAlign: TextAlign.center,
-                      ),
+                          child: const Text(
+                            'Última Toma de Signos Vitales',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(255, 0, 62, 143),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: _getSignosVitalesEntries().length,
+                            itemBuilder: (context, index) {
+                              final entry = _getSignosVitalesEntries()[index];
+                              return _buildDataRow(
+                                entry['label']!,
+                                entry['value']!,
+                              );
+                            },
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 20),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: _getSignosVitalesEntries().length,
-                        itemBuilder: (context, index) {
-                          final entry = _getSignosVitalesEntries()[index];
-                          return _buildDataRow(entry['label']!, entry['value']!);
-                        },
-                      ),
-                    ),
-                  ],
+                  ),
+      ),
+    );
+  }
+
+  Widget _buildDataRow(String label, String value) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      elevation: 3,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              flex: 2,
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 0, 62, 143),
                 ),
               ),
-  );
-}
-
-Widget _buildDataRow(String label, String value) {
-  return Card(
-    margin: const EdgeInsets.symmetric(vertical: 8.0),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(10),
-    ),
-    elevation: 3,
-    child: Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            flex: 2,
-            child: Text(
-              label,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blueAccent),
             ),
-          ),
-          Expanded(
-            flex: 3,
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 16, color: Colors.black87),
-              textAlign: TextAlign.end,
+            Expanded(
+              flex: 3,
+              child: Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.black87,
+                ),
+                textAlign: TextAlign.end,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
-List<Map<String, String>> _getSignosVitalesEntries() {
-  return [
-    {'label': 'Fecha de Registro', 'value': signosVitales?['fecha'] ?? 'No disponible'},
-    {'label': 'Peso', 'value': signosVitales?['peso']?.toString() ?? 'No disponible'},
-    {'label': 'Talla', 'value': signosVitales?['talla']?.toString() ?? 'No disponible'},
-    {'label': 'Pulso', 'value': signosVitales?['pulso']?.toString() ?? 'No disponible'},
-    {'label': 'Temperatura Oral', 'value': signosVitales?['temperatura_oral']?.toString() ?? 'No disponible'},
-    {'label': 'Presión Sistólica', 'value': signosVitales?['presion_sistolica']?.toString() ?? 'No disponible'},
-    {'label': 'Presión Diastólica', 'value': signosVitales?['presion_diastolica']?.toString() ?? 'No disponible'},
-    {'label': 'Frecuencia Cardíaca', 'value': signosVitales?['frecuencia_cardiaca']?.toString() ?? 'No disponible'},
-    {'label': 'Saturación de Oxígeno', 'value': signosVitales?['saturacion_oxigeno']?.toString() ?? 'No disponible'},
-  ];
-}
-
-
+  List<Map<String, String>> _getSignosVitalesEntries() {
+    return [
+      {'label': 'Fecha de Registro', 'value': signosVitales?['fecha'] ?? 'No disponible'},
+      {'label': 'Peso', 'value': signosVitales?['peso']?.toString() ?? 'No disponible'},
+      {'label': 'Talla', 'value': signosVitales?['talla']?.toString() ?? 'No disponible'},
+      {'label': 'Pulso', 'value': signosVitales?['pulso']?.toString() ?? 'No disponible'},
+      {'label': 'Temperatura Oral', 'value': signosVitales?['temperatura_oral']?.toString() ?? 'No disponible'},
+      {'label': 'Presión Sistólica', 'value': signosVitales?['presion_sistolica']?.toString() ?? 'No disponible'},
+      {'label': 'Presión Diastólica', 'value': signosVitales?['presion_diastolica']?.toString() ?? 'No disponible'},
+      {'label': 'Frecuencia Cardíaca', 'value': signosVitales?['frecuencia_cardiaca']?.toString() ?? 'No disponible'},
+      {'label': 'Saturación de Oxígeno', 'value': signosVitales?['saturacion_oxigeno']?.toString() ?? 'No disponible'},
+    ];
+  }
 }

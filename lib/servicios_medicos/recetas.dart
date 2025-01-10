@@ -134,73 +134,110 @@ class _RecetasPageState extends State<RecetasPage> {
   }
 
   Widget _buildRecetaCard(Map<String, dynamic> receta) {
-    final detalles = receta['detalles'] as List<dynamic>?;
+  final detalles = receta['detalles'] as List<dynamic>?;
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Card(
-        elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Última Receta',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+  return Padding(
+    padding: const EdgeInsets.all(16.0),
+    child: Card(
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      color: Colors.white,
+      shadowColor: Colors.grey.withOpacity(0.4),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Última Receta',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF2C3E50),
               ),
-              const SizedBox(height: 10),
-              Text(
-                'ID: ${receta['id'] ?? 'No disponible'}',
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Fecha de Creación: ${receta['fecha_creacion']?.split('T')[0] ?? 'No disponible'}',
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'Detalles:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              if (detalles != null && detalles.isNotEmpty)
-                ...detalles
-                    .whereType<Map<String, dynamic>>()
-                    .map((detalle) => _buildDetalleRow(detalle))
-                    
-              else
-                const Text(
-                  'No hay detalles disponibles.',
-                  style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                const Icon(
+                  Icons.medication,
+                  color: Color(0xFF27AE60),
+                  size: 30,
                 ),
-            ],
-          ),
+                const SizedBox(width: 10),
+                Text(
+                  'ID: ${receta['id'] ?? 'No disponible'}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.black54,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Fecha de Creación: ${receta['fecha_creacion']?.split('T')[0] ?? 'No disponible'}',
+              style: const TextStyle(fontSize: 16, color: Colors.black54),
+            ),
+            const SizedBox(height: 15),
+            const Text(
+              'Detalles:',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF2980B9),
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (detalles != null && detalles.isNotEmpty)
+              ...detalles.map((detalle) => _buildDetalleRow(detalle))
+            else
+              const Padding(
+                padding: EdgeInsets.only(top: 8.0),
+                child: Text(
+                  'No hay detalles disponibles.',
+                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                ),
+              ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
-  Widget _buildDetalleRow(Map<String, dynamic> detalle) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Text(
-              detalle['nombre_generico'] ?? 'No disponible',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+Widget _buildDetalleRow(Map<String, dynamic> detalle) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8.0),
+    child: Row(
+      children: [
+        // Replacing the 'pill' icon with 'medication' from Icons class
+        Icon(
+          Icons.medication, // Use the medication icon
+          color: Color(0xFF8E44AD),
+          size: 24,
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            detalle['nombre_generico'] ?? 'No disponible',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF34495E),
             ),
           ),
-          Text(
-            'Cantidad: ${detalle['cantidad']?.toString() ?? 'No disponible'}',
-            style: const TextStyle(fontSize: 16),
-          ),
-        ],
-      ),
-    );
-  }
+        ),
+        const SizedBox(width: 8),
+        Text(
+          'Cantidad: ${detalle['cantidad']?.toString() ?? 'No disponible'}',
+          style: const TextStyle(fontSize: 16, color: Color(0xFF27AE60)),
+        ),
+      ],
+    ),
+  );
+}
+
+
 }
