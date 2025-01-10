@@ -212,7 +212,6 @@ Widget _buildDetalleRow(Map<String, dynamic> detalle) {
     padding: const EdgeInsets.symmetric(vertical: 8.0),
     child: Row(
       children: [
-        // Replacing the 'pill' icon with 'medication' from Icons class
         Icon(
           Icons.medication, // Use the medication icon
           color: Color(0xFF8E44AD),
