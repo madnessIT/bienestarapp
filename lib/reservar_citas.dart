@@ -20,7 +20,7 @@ class _ReservarCitasPageState extends State<ReservarCitasPage> {
   @override
   void initState() {
     super.initState();
-    _selectedDate = DateTime.now(); // Inicializar la fecha seleccionada con la fecha actual
+    _selectedDate = DateTime.now();
     Provider.of<FechaProvider>(context, listen: false)
         .setFecha(_selectedDate!.toIso8601String().split('T')[0]);
     _fetchRegionales();
@@ -51,12 +51,10 @@ class _ReservarCitasPageState extends State<ReservarCitasPage> {
         setState(() {
           regionales = data.where((regional) => regional['activo'] == true).toList();
           _isLoadingRegional = false;
-
-          // Verificar si el ID 1 existe en la lista de regionales activos
           if (regionales.any((regional) => regional['id'].toString() == '1')) {
-            _selectedRegionalId = '1'; // Confirmar que el ID 1 sea el valor seleccionado
+            _selectedRegionalId = '1';
           } else if (regionales.isNotEmpty) {
-            _selectedRegionalId = regionales.first['id'].toString(); // Seleccionar el primero si no existe el ID 1
+            _selectedRegionalId = regionales.first['id'].toString();
           }
         });
       } else {
@@ -90,73 +88,94 @@ class _ReservarCitasPageState extends State<ReservarCitasPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-  title: const Text(
-    'Reservar cita médica',
-    style: TextStyle(
-      color: Colors.white,
-      fontWeight: FontWeight.bold,
-    ),
-  ),
-  flexibleSpace: Container(
-    decoration: const BoxDecoration(
-      gradient: LinearGradient(
-        colors: [
-          Color.fromARGB(255, 1, 179, 45), // Verde        //const Color.fromARGB(255, 1, 179, 45),
-          Color.fromARGB(255, 0, 62, 143), // Azul
-        ],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
+        title: const Text(
+          'Reservar cita médica',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color.fromARGB(255, 1, 179, 45),
+                Color.fromARGB(255, 0, 62, 143),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
       ),
-    ),
-  ),
-),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Image.asset(
-                  'assets/images/logo.png',
-                  height: 100,
-                  fit: BoxFit.contain,
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Introducir Fecha:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              _buildDateButton(),
-              const SizedBox(height: 20),
-              const Text(
-                'Seleccione una Regional:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              _buildRegionalDropdown(),
-              const SizedBox(height: 30),
-              Center(
-                child: ElevatedButton(
-                  onPressed: (_selectedDate != null && _selectedRegionalId != null)
-                      ? _goToServiciosClinica
-                      : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 1, 179, 45),
-                    padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade50, Colors.blue.shade100],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24.0),
+                child: Card(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                  elevation: 8,
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Center(
+                          child: Image.asset(
+                            'assets/images/logo.png',
+                            height: 100,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          'Introducir Fecha:',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                        _buildDateButton(),
+                        const SizedBox(height: 20),
+                        const Text(
+                          'Seleccione una Regional:',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                        _buildRegionalDropdown(),
+                        const SizedBox(height: 30),
+                        ElevatedButton(
+                          onPressed: (_selectedDate != null && _selectedRegionalId != null)
+                              ? _goToServiciosClinica
+                              : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(255, 1, 179, 45),
+                            padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: const Text(
+                            'Continuar',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  child: const Text(
-                    'Continuar',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
                 ),
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -182,41 +201,40 @@ class _ReservarCitasPageState extends State<ReservarCitasPage> {
   }
 
   Widget _buildRegionalDropdown() {
-  return _isLoadingRegional
-      ? const Center(child: CircularProgressIndicator())
-      : DropdownButtonFormField<String>(
-          value: _selectedRegionalId,
-          decoration: InputDecoration(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
+    return _isLoadingRegional
+        ? const Center(child: CircularProgressIndicator())
+        : DropdownButtonFormField<String>(
+            value: _selectedRegionalId,
+            decoration: InputDecoration(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
-          ),
-          hint: const Text('Seleccione la Regional'),
-          onChanged: (String? newValue) {
-            setState(() {
-              _selectedRegionalId = newValue;
-              if (newValue != null) {
-                final regional = regionales.firstWhere(
-                  (r) => r['id'].toString() == newValue,
-                  orElse: () => null,
-                );
-                final regionalNombre = regional != null ? regional['nombre'] : '';
-                Provider.of<FechaProvider>(context, listen: false)
-                  ..setDepartamentoId(newValue)
-                  ..setDepartamentoNombre(regionalNombre);
-              }
-            });
-          },
-          items: regionales
-              .where((regional) => regional['id'].toString() == '1') // Filtrar por ID = 1
-              .map((regional) {
-                return DropdownMenuItem<String>(
-                  value: regional['id'].toString(),
-                  child: Text(regional['nombre']),
-                );
-              }).toList(),
-        );
-}
-
+            hint: const Text('Seleccione la Regional'),
+            onChanged: (String? newValue) {
+              setState(() {
+                _selectedRegionalId = newValue;
+                if (newValue != null) {
+                  final regional = regionales.firstWhere(
+                    (r) => r['id'].toString() == newValue,
+                    orElse: () => null,
+                  );
+                  final regionalNombre = regional != null ? regional['nombre'] : '';
+                  Provider.of<FechaProvider>(context, listen: false)
+                    ..setDepartamentoId(newValue)
+                    ..setDepartamentoNombre(regionalNombre);
+                }
+              });
+            },
+            items: regionales
+                .where((regional) => regional['id'].toString() == '1')
+                .map((regional) {
+                  return DropdownMenuItem<String>(
+                    value: regional['id'].toString(),
+                    child: Text(regional['nombre']),
+                  );
+                }).toList(),
+          );
+  }
 }

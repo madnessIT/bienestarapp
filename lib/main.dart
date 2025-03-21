@@ -17,6 +17,7 @@ import 'sucursal_atencion.dart';
 import 'medico_atencion.dart';
 import 'modify_page.dart';
 import 'mis_reservas.dart';
+//import 'QRResponsePage.dart';
 import 'servicios_medicos/pap.dart';
 import '/servicios_medicos/recetas.dart';
 import '/servicios_medicos/signos_vitales.dart';
@@ -50,7 +51,7 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) =>  LoginPage(),
+        '/': (context) =>  const LoginPage(),
         '/register_page': (context) => const RegisterPage(),
         '/menu_paciente': (context) => const MenuPacientePage(),
         '/servicios_medicos': (context) => const ServiciosMedicosPage(),
@@ -61,14 +62,15 @@ class MyApp extends StatelessWidget {
         '/sucursal_atencion': (context) => const SucursalAtencionPage(),
         '/servicio_atencion': (context) => const ServiciosAtencionPage(),
         '/medico_atencion': (context) => const MedicoAtencionPage (),
-        '/modify_page':(context) =>  ModificarPacientePage (),
+        '/modify_page':(context) =>  const ModificarPacientePage (),
         '/mis_reservas':(context) =>  const MisReservasPage (),
         '/servicios_medicos/recetas': (context) => const RecetasPage(),
         '/servicios_medicos/signos_vitales': (context) => const SignosVitalesPage(),
-        '/servicios_medicos/laboratorios': (context) => const LaboratoriosPage(),
+        '/servicios_medicos/laboratorios': (context) => const LaboratorioPage(),
         '/servicios_medicos/captura_hibrida': (context) => const CapturaHibridaHistorialPage(),
         '/servicios_medicos/pap': (context) =>  const PapPage(),
         '/prefactura': (context) =>  const PrefacturaPage(),
+        //'/QRResponsePage': (context) =>  const QRResponsePage(),
 
       },
      

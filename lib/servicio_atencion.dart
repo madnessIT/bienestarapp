@@ -38,117 +38,136 @@ class _ServiciosAtencionPageState extends State<ServiciosAtencionPage> {
 
     return Scaffold(
       appBar: AppBar(
-  title: const Text(
-    'Servicios Disponibles',
-    style: TextStyle(
-      color: Colors.white,
-      fontWeight: FontWeight.bold,
-    ),
-  ),
-  flexibleSpace: Container(
-    decoration: const BoxDecoration(
-      gradient: LinearGradient(
-        colors: [
-          Color.fromARGB(255, 1, 179, 45), // Verde        //const Color.fromARGB(255, 1, 179, 45),
-          Color.fromARGB(255, 0, 62, 143), // Azul
-        ],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-    ),
-  ),
-),
-      body: Column(
-        children: [
-          // Logo y detalles en la parte superior
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            child: Column(
-              children: [
-                Center(
-                  child: Image.asset(
-                    'assets/images/logo.png', // Asegúrate de que la ruta sea correcta
-                    height: 80,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Fecha de Atención: $fecha',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                ),
-                Text(
-                  'Regional: $departamentoNombre',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                ),
+        title: const Text(
+          'Servicios Disponibles',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color.fromARGB(255, 1, 179, 45),
+                Color.fromARGB(255, 0, 62, 143),
               ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
           ),
-          // Buscador
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Buscar servicio...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  searchQuery = value.toLowerCase();
-                  filteredServicios = servicios.where((servicio) {
-                    final nombre = servicio['nombre']?.toLowerCase() ?? '';
-                    return nombre.contains(searchQuery);
-                  }).toList();
-                });
-              },
-            ),
+        ),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade50, Colors.blue.shade100],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
-          // Lista de servicios
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: ListView.builder(
-                      itemCount: filteredServicios.length,
-                      itemBuilder: (context, index) {
-                        var servicio = filteredServicios[index];
-                        var especialidades = servicio['especialidades'] as List<dynamic>;
-
-                        return Card(
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
+        ),
+        child: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 800),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Logo y detalles de fecha y regional
+                      Column(
+                        children: [
+                          Image.asset(
+                            'assets/images/logo.png',
+                            height: 80,
+                            fit: BoxFit.contain,
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            'Fecha de Atención: $fecha',
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                          ),
+                          Text(
+                            'Regional: $departamentoNombre',
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      // Buscador de servicios
+                      TextField(
+                        decoration: InputDecoration(
+                          hintText: 'Buscar servicio...',
+                          prefixIcon: const Icon(Icons.search),
+                          border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-                            title: Text(
-                              servicio['nombre'],
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                            subtitle: Text(
-                              servicio['codigo'] ?? 'Sin Codigo',
-                              style: const TextStyle(color: Colors.grey),
-                            ),
-                            trailing: const Icon(Icons.arrow_forward_ios, color: Colors.blueAccent),
-                            onTap: () {
-                              if (especialidades.isNotEmpty) {
-                                String especialidadId = especialidades[0]['id'].toString();
-                                _onEspecialidadSelected(servicio['nombre'], servicio['codigo'], especialidadId);
-                              } else {
-                                print("No hay especialidades disponibles para este servicio");
-                              }
-                            },
-                          ),
-                        );
-                      },
-                    ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            searchQuery = value.toLowerCase();
+                            filteredServicios = servicios.where((servicio) {
+                              final nombre = servicio['nombre']?.toLowerCase() ?? '';
+                              return nombre.contains(searchQuery);
+                            }).toList();
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      // Lista de servicios
+                      _isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : filteredServicios.isEmpty
+                              ? const Center(child: Text('No se encontraron servicios.'))
+                              : ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: filteredServicios.length,
+                                  itemBuilder: (context, index) {
+                                    var servicio = filteredServicios[index];
+                                    var especialidades = servicio['especialidades'] as List<dynamic>;
+
+                                    return Card(
+                                      elevation: 4,
+                                      margin: const EdgeInsets.symmetric(vertical: 8),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: ListTile(
+                                        contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                                        title: Text(
+                                          servicio['nombre'],
+                                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                        ),
+                                        subtitle: Text(
+                                          servicio['codigo'] ?? 'Sin Código',
+                                          style: const TextStyle(color: Colors.grey),
+                                        ),
+                                        trailing: const Icon(Icons.arrow_forward_ios, color: Colors.blueAccent),
+                                        onTap: () {
+                                          if (especialidades.isNotEmpty) {
+                                            String especialidadId = especialidades[0]['id'].toString();
+                                            _onEspecialidadSelected(servicio['nombre'], servicio['codigo'], especialidadId);
+                                          } else {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(content: Text("No hay especialidades disponibles para este servicio")),
+                                            );
+                                          }
+                                        },
+                                      ),
+                                    );
+                                  },
+                                ),
+                    ],
                   ),
+                ),
+              ),
+            ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -183,13 +202,10 @@ class _ServiciosAtencionPageState extends State<ServiciosAtencionPage> {
   }
 
   void _onEspecialidadSelected(String servicioNombre, String servicioCodigo, String especialidadId) async {
-    // Actualiza el servicio seleccionado en el ServicioProvider
     Provider.of<ServicioProvider>(context, listen: false).setServicio(servicioNombre, servicioCodigo);
 
     var url = Uri.parse(
       'http://test.api.movil.cies.org.bo/agenda/regionales_tes/?especialidad=$especialidadId&departamento=$departamentoId&fecha=$fecha',
-
-      ///agenda/regionales_internet/?especialidad=$especialidadId&departamento=$departamentoId&fecha=$fecha',
     );
 
     try {

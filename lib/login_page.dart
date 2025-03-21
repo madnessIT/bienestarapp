@@ -27,9 +27,9 @@ class _LoginPageState extends State<LoginPage> {
   final String apiUrl = 'http://test.api.movil.cies.org.bo/afiliacion/login_codigo_tes/';
 
   Future<void> loginPaciente(String documento) async {
-    if (documento.isEmpty) {
+    if (documento.isEmpty || !RegExp(r'^[0-9]+').hasMatch(documento)) {
       setState(() {
-        loginStatus = 'Por favor, ingrese su documento de identidad';
+        loginStatus = 'Por favor, ingrese un documento de identidad válido';
       });
       return;
     }
@@ -48,39 +48,31 @@ class _LoginPageState extends State<LoginPage> {
         body: jsonEncode({}),
       );
 
-      if (response.statusCode == 200) {
-        var data = jsonDecode(response.body);
+      var data = jsonDecode(response.body);
+      final expedienteProvider = Provider.of<ExpedienteProvider>(context, listen: false);
+      print("Respuesta de la API: ${response.body}");
+      if (response.statusCode == 200 &&
+          data.containsKey('expedienteclinico') &&
+          data['expedienteclinico']['pin_app'] != null) {
+        // Almacenar datos en el provider
+        expedienteProvider.setPatientId(data['id']);
+        expedienteProvider.setExpedienteclinicoId(data['expedienteclinico']['id']);
+        expedienteProvider.setExpedienteClinico(data['expedienteclinico']['expediente_clinico']);
+        expedienteProvider.setnit(data['nit']);
+        expedienteProvider.setrazonSocial(data['razon_social']);
+        expedienteProvider.setdocumento(data['documento']);
 
-        if (data.containsKey('expedienteclinico') && data['expedienteclinico']['pin_app'] != null) {
-          int expedienteId = data['expedienteclinico']['id'];
-          Provider.of<ExpedienteProvider>(context, listen: false).setExpedienteclinicoId(expedienteId);
-          int expedienteClinico = data['expedienteclinico']['expediente_clinico'];
-          Provider.of<ExpedienteProvider>(context, listen: false).setExpedienteClinico(expedienteClinico);
-          String? nit = data['nit'];
-          Provider.of<ExpedienteProvider>(context, listen: false).setnit(nit);
-          String? razonSocial = data['razon_social'];
-          Provider.of<ExpedienteProvider>(context, listen: false).setrazonSocial(razonSocial);
-          String? documento = data['documento'];
-          Provider.of<ExpedienteProvider>(context, listen: false).setdocumento(documento);
-
-          setState(() {
-            _pinApp = data['expedienteclinico']['pin_app'].toString();
-            _nombre = data['nombres'];
-            _paterno = data['paterno'];
-            _materno = data['materno'];
-            _ci = data['documento'];
-            loginStatus = 'PIN enviado. Por favor ingresa el PIN.';
-            _pinSent = true;
-            _isLoading = false;
-            _showRegisterButton = false;
-          });
-        } else {
-          setState(() {
-            loginStatus = 'Error: No se recibió el PIN.';
-            _isLoading = false;
-            _showRegisterButton = false;
-          });
-        }
+        setState(() {
+          _pinApp = data['expedienteclinico']['pin_app'].toString();
+          _nombre = data['nombres'];
+          _paterno = data['paterno'];
+          _materno = data['materno'];
+          _ci = data['documento'];
+          loginStatus = 'PIN enviado. Por favor ingresa el PIN.';
+          _pinSent = true;
+          _isLoading = false;
+          _showRegisterButton = false;
+        });
       } else if (response.statusCode == 302) {
         setState(() {
           loginStatus = 'Paciente no encontrado. ¿Deseas registrarte?';
@@ -96,7 +88,7 @@ class _LoginPageState extends State<LoginPage> {
       }
     } catch (e) {
       setState(() {
-        loginStatus = 'Error en la conexión';
+        loginStatus = 'Error en la conexión: ${e.toString()}';
         _isLoading = false;
         _showRegisterButton = false;
       });
@@ -133,122 +125,129 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      //appBar: AppBar(
-        //title: const Text("Clínica Bienestar"),
-        //backgroundColor: Color.fromARGB(255, 0, 62, 143),
-      //),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Image.asset(
-                  'assets/images/logo.png',
-                  height: 120,
-                  fit: BoxFit.contain,
-                ),
-                const SizedBox(height: 20),
-                Container(
-                  padding: const EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 5,
-                        blurRadius: 7,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
+      // Fondo degradado para la web
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade50, Colors.blue.shade100],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 500),
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Column(
-                    children: [
-                      const Text(
-                        'Iniciar Sesión',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Color.fromARGB(255, 0, 62, 143),
+                  elevation: 8,
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          'assets/images/logo.png',
+                          height: 120,
+                          fit: BoxFit.contain,
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      TextField(
-                        controller: _documentoController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText: 'Documento de Identidad',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
+                        const SizedBox(height: 20),
+                        Text(
+                          'Iniciar Sesión',
+                          style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue.shade900,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      _isLoading
-                          ? const CircularProgressIndicator()
-                          : ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Color.fromARGB(255, 1, 179, 45),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                              onPressed: () => loginPaciente(_documentoController.text),
-                              child: const Text("Login"),
-                            ),
-                      if (_pinSent) ...[
                         const SizedBox(height: 20),
                         TextField(
-                          controller: _pinController,
+                          controller: _documentoController,
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
-                            labelText: 'Ingrese el PIN',
+                            labelText: 'Documento de Identidad',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
+                            prefixIcon: const Icon(Icons.person),
                           ),
                         ),
                         const SizedBox(height: 20),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color.fromARGB(255, 0, 62, 143),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                        _isLoading
+                            ? const CircularProgressIndicator()
+                            : ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  minimumSize: const Size.fromHeight(50),
+                                ),
+                                onPressed: () => loginPaciente(_documentoController.text),
+                                child: const Text(
+                                  "Iniciar Sesión",
+                                  style: TextStyle(fontSize: 18),
+                                ),
+                              ),
+                        if (loginStatus != null) ...[
+                          const SizedBox(height: 20),
+                          Text(
+                            loginStatus!,
+                            style: const TextStyle(color: Colors.red, fontSize: 16),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                        if (_pinSent) ...[
+                          const SizedBox(height: 20),
+                          TextField(
+                            controller: _pinController,
+                            keyboardType: TextInputType.number,
+                            obscureText: true,
+                            decoration: InputDecoration(
+                              labelText: 'Ingrese el PIN',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              prefixIcon: const Icon(Icons.lock),
                             ),
                           ),
-                          onPressed: confirmarPin,
-                          child: const Text("Confirmar PIN"),
-                        ),
-                      ],
-                      if (_showRegisterButton) ...[
-                        const SizedBox(height: 20),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color.fromARGB(255, 0, 62, 143),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                          const SizedBox(height: 20),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue.shade800,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              minimumSize: const Size.fromHeight(50),
+                            ),
+                            onPressed: confirmarPin,
+                            child: const Text(
+                              "Confirmar PIN",
+                              style: TextStyle(fontSize: 18),
                             ),
                           ),
-                          onPressed: () => Navigator.pushNamed(context, '/register_page'),
-                          child: const Text("Registrar Paciente"),
-                        ),
+                        ],
+                        if (_showRegisterButton) ...[
+                          const SizedBox(height: 20),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pushNamed(context, '/register');
+                            },
+                            child: const Text(
+                              "Registrarse",
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
-                  ),
-                ),
-                if (loginStatus != null) ...[
-                  const SizedBox(height: 20),
-                  Text(
-                    loginStatus!,
-                    style: TextStyle(
-                      color: loginStatus!.contains('éxito') ? Color.fromARGB(255, 1, 179, 45) : Colors.red,
-                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ],
-              ],
+                ),
+              ),
             ),
           ),
         ),

@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
 
 class ExpedienteProvider with ChangeNotifier {
-  int? _expedienteclinicoId;
+ int? _PatientId;
+  // Getter para PatientId
+  int? get PatientId => _PatientId;
+
+  // Setter para PatientId
+  void setPatientId(int id) {
+    _PatientId = id;
+    notifyListeners(); // Notifica a los widgets dependientes para que se actualicen
+  }
+ int? _expedienteclinicoId;
   int? _expedienteClinico;
   String? _nit;
   String? _razonSocial;
@@ -31,7 +40,7 @@ class ExpedienteProvider with ChangeNotifier {
     _nit = nit;
     notifyListeners(); // Notifica a los widgets dependientes para que se actualicen
   }
-// Getter para nit
+// Getter para razon social
   String? get razonSocial => _razonSocial;
 
   // Setter para razon_social

@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:provider/provider.dart';
 import 'fecha_provider.dart';
 import 'servicio_provider.dart';
-import 'sucursal_provider.dart'; // Importamos el SucursalProvider
+import 'sucursal_provider.dart';
 
 class SucursalAtencionPage extends StatelessWidget {
   const SucursalAtencionPage({super.key});
@@ -20,10 +20,10 @@ class SucursalAtencionPage extends StatelessWidget {
     // Obtener datos del FechaProvider
     final fechaProvider = Provider.of<FechaProvider>(context);
     final String departamentoNombre = fechaProvider.departamentoNombre ?? 'Sin nombre';
-    
+
     // Obtener el nombre del servicio desde el ServicioProvider
     final servicioNombre = Provider.of<ServicioProvider>(context).servicioNombre;
-    
+
     if (fecha.isEmpty || departamentoNombre.isEmpty || especialidadId.isEmpty) {
       return Scaffold(
         appBar: AppBar(title: const Text('Sucursal Atención')),
@@ -61,126 +61,142 @@ class SucursalAtencionPage extends StatelessWidget {
     }
 
     return Scaffold(
-     appBar: AppBar(
-  title: const Text(
-    'Sucursales Disponibles',
-    style: TextStyle(
-      color: Colors.white,
-      fontWeight: FontWeight.bold,
-    ),
-  ),
-  flexibleSpace: Container(
-    decoration: const BoxDecoration(
-      gradient: LinearGradient(
-        colors: [
-          Color.fromARGB(255, 1, 179, 45), // Verde        //const Color.fromARGB(255, 1, 179, 45),
-          Color.fromARGB(255, 0, 62, 143), // Azul
-        ],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
+      appBar: AppBar(
+        title: const Text(
+          'Sucursales Disponibles',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color.fromARGB(255, 1, 179, 45),
+                Color.fromARGB(255, 0, 62, 143),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
       ),
-    ),
-  ),
-),
-      body: sucursales.isEmpty
-          ? const Center(
-              child: Text(
-                'No hay sucursales disponibles',
-                style: TextStyle(fontSize: 18, color: Colors.grey),
-              ),
-            )
-          : Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: [
-                  // Logo en la parte superior
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16.0, bottom: 16.0),
-                    child: Center(
-                      child: Image.asset(
-                        'assets/images/logo.png', // Asegúrate de que la ruta sea correcta
-                        height: 80,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ),
-                  // Encabezado con fecha y nombre del departamento
-                  Center(
-              child:  Card(
-                color: Colors.blue[50],
-                elevation: 4,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                margin: const EdgeInsets.only(bottom: 16),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Fecha Atencion: $fecha',
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Regional: $departamentoNombre',
-                        style: const TextStyle(fontSize: 14, color: Colors.black87),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Servicio: $servicioNombre',
-                        style: const TextStyle(fontSize: 14, color: Colors.black87),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-                  ),
-                  const SizedBox(height: 10),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: sucursales.length,
-                      itemBuilder: (context, index) {
-                        var sucursal = sucursales[index];
-                        var codigo = sucursal['codigo']?.toString() ?? '';
-                        var descripcion = sucursal['descripcion']?.toString() ?? 'Sucursal sin nombre';
-                        var direccion = sucursal['direccion']?.toString() ?? 'Dirección no disponible';
-
-                        // Guardamos los datos de la sucursal en el SucursalProvider
-                        final sucursalProvider = Provider.of<SucursalProvider>(context, listen: false);
-                        sucursalProvider.setSucursal(codigo, descripcion);
-
-                        return Card(
-                          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          elevation: 4,
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.all(16.0),
-                            title: Text(
-                              descripcion,
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade50, Colors.blue.shade100],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 800),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: sucursales.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'No hay sucursales disponibles',
+                          style: TextStyle(fontSize: 18, color: Colors.grey),
+                        ),
+                      )
+                    : Column(
+                        children: [
+                          // Logo
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 16.0),
+                            child: Image.asset(
+                              'assets/images/logo.png',
+                              height: 80,
+                              fit: BoxFit.contain,
                             ),
-                            subtitle: Text(
-                              direccion,
-                              style: const TextStyle(color: Colors.grey, fontSize: 14),
-                            ),
-                            trailing: const Icon(Icons.arrow_forward_ios, color: Colors.blueAccent),
-                            onTap: () {
-                              if (codigo.isNotEmpty) {
-                                fetchMedicos(codigo);
-                              } else {
-                                print("Código de sucursal no disponible.");
-                              }
-                            },
                           ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
+                          // Encabezado con datos de la atención
+                          Card(
+                            color: Colors.blue[50],
+                            elevation: 4,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            margin: const EdgeInsets.only(bottom: 16),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Fecha Atención: $fecha',
+                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Regional: $departamentoNombre',
+                                    style: const TextStyle(fontSize: 14, color: Colors.black87),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Servicio: $servicioNombre',
+                                    style: const TextStyle(fontSize: 14, color: Colors.black87),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          // Lista de sucursales
+                          Expanded(
+                            child: ListView.builder(
+                              itemCount: sucursales.length,
+                              itemBuilder: (context, index) {
+                                var sucursal = sucursales[index];
+                                var codigo = sucursal['codigo']?.toString() ?? '';
+                                var descripcion = sucursal['descripcion']?.toString() ?? 'Sucursal sin nombre';
+                                var direccion = sucursal['direccion']?.toString() ?? 'Dirección no disponible';
+
+                                // Actualizamos el SucursalProvider
+                                final sucursalProvider = Provider.of<SucursalProvider>(context, listen: false);
+                                sucursalProvider.setSucursal(codigo, descripcion);
+
+                                return Card(
+                                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  elevation: 4,
+                                  child: ListTile(
+                                    contentPadding: const EdgeInsets.all(16.0),
+                                    title: Text(
+                                      descripcion,
+                                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                                    ),
+                                    subtitle: Text(
+                                      direccion,
+                                      style: const TextStyle(color: Colors.grey, fontSize: 14),
+                                    ),
+                                    trailing: const Icon(Icons.arrow_forward_ios, color: Colors.blueAccent),
+                                    onTap: () {
+                                      if (codigo.isNotEmpty) {
+                                        fetchMedicos(codigo);
+                                      } else {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text("Código de sucursal no disponible.")),
+                                        );
+                                      }
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
               ),
             ),
+          ),
+        ),
+      ),
     );
   }
 }

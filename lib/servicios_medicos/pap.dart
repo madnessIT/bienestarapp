@@ -97,9 +97,9 @@ class PapPage extends StatelessWidget {
                             Text('Fecha del Resultado: ${_formatDate(item['resultado_fecha'])}'),
                             Text('Detalles: ${item['detalle'] ?? "No especificado"}'),
                             const Divider(),
-                            Text(
+                            const Text(
                               'Tipos:',
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                             ...nombresTipo.map((tipo) => Text(
                                 '- ${tipo['nombre']} (Sección: ${tipo['seccion']})')),
@@ -129,6 +129,7 @@ class PapPage extends StatelessWidget {
     final url =
         'http://test.api.movil.cies.org.bo/resultado_pap_informado/list_pap_historial_con_resultado_informados_no_informados/?expediente_clinico=$expedienteClinico';
     final response = await http.get(Uri.parse(url));
+    print('Fetching data from: $url');
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
