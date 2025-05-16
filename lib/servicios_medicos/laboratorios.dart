@@ -21,46 +21,46 @@ class _LaboratorioPageState extends State<LaboratorioPage> {
   }
 
   Future<List<Registro>> fetchLaboratorioData() async {
-    try {
-      final expedienteClinico = Provider.of<ExpedienteProvider>(context, listen: false).expedienteClinico;
+  try {
+    final expedienteClinico = Provider.of<ExpedienteProvider>(context, listen: false).expedienteClinico;
 
-      if (expedienteClinico == null || expedienteClinico <= 0) {
-        throw Exception('El ID del expediente clínico es inválido o no está disponible.');
-      }
-
-      final url = Uri.parse('https://api.movil.cies.org.bo/laboratorio/ordenes/$expedienteClinico/paciente/');
-      final headers = {
-        'regional': '02', // Agregar el header regional con valor 02
-      };
-
-      final response = await http.get(url, headers: headers);
-
-      if (response.statusCode == 200) {
-        final jsonResponse = json.decode(response.body);
-
-        if (jsonResponse is Map && jsonResponse.containsKey('message')) {
-          throw Exception(jsonResponse['message']);
-        }
-
-        if (jsonResponse is List) {
-          final registros = jsonResponse.map((x) => Registro.fromJson(x)).toList();
-
-          // Ordenar los registros por fecha de creación en orden descendente
-          registros.sort((a, b) => b.fechaCreacion.compareTo(a.fechaCreacion));
-
-          // Retornar los últimos dos registros
-          return registros.length > 2 ? registros.sublist(0, 2) : registros;
-        } else {
-          throw Exception('Respuesta JSON inesperada: $jsonResponse');
-        }
-      } else {
-        throw Exception('Error al cargar los datos del laboratorio: ${response.statusCode}');
-      }
-    } catch (e) {
-      debugPrint('Error al procesar los datos del laboratorio: $e');
-      throw Exception('Error al procesar los datos del laboratorio: $e');
+    if (expedienteClinico == null || expedienteClinico <= 0) {
+      throw Exception('El ID del expediente clínico es inválido o no está disponible.');
     }
+
+    final url = Uri.parse(
+      'https://api.movil.cies.org.bo/laboratorio/ordenes/$expedienteClinico/paciente/?regional=02'
+    );
+
+    final response = await http.get(url); // <- sin headers
+
+    if (response.statusCode == 200) {
+      final jsonResponse = json.decode(response.body);
+
+      if (jsonResponse is Map && jsonResponse.containsKey('message')) {
+        throw Exception(jsonResponse['message']);
+      }
+
+      if (jsonResponse is List) {
+        final registros = jsonResponse.map((x) => Registro.fromJson(x)).toList();
+
+        // Ordenar los registros por fecha de creación en orden descendente
+        registros.sort((a, b) => b.fechaCreacion.compareTo(a.fechaCreacion));
+
+        // Retornar los últimos dos registros
+        return registros.length > 2 ? registros.sublist(0, 2) : registros;
+      } else {
+        throw Exception('Respuesta JSON inesperada: $jsonResponse');
+      }
+    } else {
+      throw Exception('Error al cargar los datos del laboratorio: ${response.statusCode}');
+    }
+  } catch (e) {
+    debugPrint('Error al procesar los datos del laboratorio: $e');
+    throw Exception('Error al procesar los datos del laboratorio: $e');
   }
+}
+
 
  @override
 Widget build(BuildContext context) {

@@ -6,6 +6,10 @@ import 'dart:typed_data';
 import 'sucursal_provider.dart';
 import 'servicio_provider.dart';
 import 'expediente_provider.dart';
+import 'package:flutter/rendering.dart';
+import 'dart:ui' as ui;
+
+
 // Importación condicional para la descarga:
 // En web se utilizará download_helper_web.dart, y en Android u otras, download_helper_mobile.dart.
 import 'download_helper_mobile.dart'
@@ -23,9 +27,11 @@ class _PrefacturaPageState extends State<PrefacturaPage> {
 
   Future<List<dynamic>> fetchServicios(String servicioNombre, String regionalCodigo) async {
     final url =
-        'http://test.api.movil.cies.org.bo/administracion/servicios/all/?search=$servicioNombre';
+      //'http://test.api.movil.cies.org.bo/administracion/servicios/all/?search=$servicioNombre&regional=$regionalCodigo';
+      'https://api.movil.cies.org.bo/administracion/servicios/all/?search=$servicioNombre&regional=$regionalCodigo';
     final headers = {
-      'regional': regionalCodigo,
+      //"regional": regionalCodigo,  // Comentado
+      "Content-Type": "application/json",
     };
     final response = await http.get(Uri.parse(url), headers: headers);
     if (response.statusCode == 200) {
@@ -121,7 +127,11 @@ class _PrefacturaPageState extends State<PrefacturaPage> {
                           const SizedBox(height: 24),
                           _buildSectionTitle(context, 'Datos Para la Reserva:'),
                           ...servicios.map((servicio) => _buildServicioCard(
-                                servicio, fecha, horaInicio, horaFin, medico,
+                                servicio,
+                                fecha,
+                                horaInicio,
+                                horaFin,
+                                medico,
                                 sucursalProvider.descripcion,
                               )),
                           const SizedBox(height: 16),
@@ -141,12 +151,12 @@ class _PrefacturaPageState extends State<PrefacturaPage> {
                                       "razon_social": razonSocialController.text,
                                       "nit": nitController.text,
                                       "sistema": "APP",
-                                      "regional": 2,
+                                      "regional": sucursalProvider.id,
                                       "registrado_por": 2899,
                                       "detalle": [
                                         {
                                           "cantidad": 1,
-                                          "codigo": selectedService['codigo'],
+                                          "codigo": servicioProvider.servicioCodigo,
                                           "descripcion": servicioProvider.servicioNombre,
                                           "precio": selectedService['precio'] is Map
                                               ? selectedService['precio']['precio']
@@ -159,14 +169,14 @@ class _PrefacturaPageState extends State<PrefacturaPage> {
                                     };
 
                                     print('Payload pre-factura enviado: $preFacturaPayload');
-
-                                    const preFacturaUrl = 'http://test.api.movil.cies.org.bo/facturacion/pre_factura/';
+                                    //final preFacturaUrl = 'http://test.api.movil.cies.org.bo/facturacion/pre_factura/?regional=${sucursalProvider.codigo}';
+                                    final preFacturaUrl = 'https://api.movil.cies.org.bo/facturacion/pre_factura/?regional=${sucursalProvider.codigo}';
                                     try {
                                       final preFacturaResponse = await http.post(
                                         Uri.parse(preFacturaUrl),
                                         headers: {
                                           "Content-Type": "application/json",
-                                          "regional": sucursalProvider.codigo,
+                                          //"regional": sucursalProvider.codigo,
                                         },
                                         body: jsonEncode(preFacturaPayload),
                                       );
@@ -183,18 +193,39 @@ class _PrefacturaPageState extends State<PrefacturaPage> {
                                             ? selectedService['precio']['precio']
                                             : selectedService['precio'];
 
+                                        // --- Sección de generación de QR ---
+                                        // Obtener valores dinámicos según sucursal
+                                        String sucursal = sucursalProvider.codigo;
+                                        int regional = sucursal == "03" ? 8 : sucursal == "14" ? 9 : 0;
+
+                                        if (regional == 0) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Sucursal no válida para generación de QR')),
+                                          );
+                                          return;
+                                        }
+
+                                        // Crear payload según el regional
                                         final qrPayload = {
                                           "numeroReferencia": id,
-                                          "glosa": "298414|JHIRAFAS CHICKENS|MISCELANEAS|$descripcion $codigo",
+                                          "glosa": regional == 8
+                                              ? "453015|TES SA API QR|8062|$descripcion $codigo"
+                                              : "453017|TES SA SATELITE API QR|8062|$descripcion $codigo",
                                           "monto": precio,
                                           "moneda": "BOB",
                                           "canal": "APP",
-                                          "tiempoQr": "00:59:00"
+                                          "tiempoQr": "00:10:00"
                                         };
 
-                                        print('Payload QR enviado: $qrPayload');
+                                        // Imprimir el contenido de qrPayload
+                                          print('Payload QR generado: $qrPayload');
 
-                                        final qrUrl = 'http://test.api.movil.cies.org.bo/generarQR/?regional=08&sucursal=${sucursalProvider.codigo}';
+                                        // Construir URL del endpoint con regional y sucursal
+                                        final qrUrl =
+                                            //'http://test.api.movil.cies.org.bo/generarQR/?regional=$regional&sucursal=$sucursal';
+                                            'https://api.movil.cies.org.bo/generarQR/?regional=$regional&sucursal=$sucursal';
+
+                                        // Enviar solicitud POST
                                         final qrResponse = await http.post(
                                           Uri.parse(qrUrl),
                                           headers: {
@@ -205,18 +236,26 @@ class _PrefacturaPageState extends State<PrefacturaPage> {
 
                                         print('Respuesta de QR: ${qrResponse.body}');
 
-                                        if (!mounted) return;
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => QRResponsePage(
-                                              qrResponse: jsonDecode(qrResponse.body),
+                                        if (qrResponse.statusCode == 200) {
+                                          // Navegar a QRResponsePage con datos
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => QRResponsePage(
+                                                qrResponse: jsonDecode(qrResponse.body),
+                                                sucursal: sucursal,
+                                                regional: regional,
+                                              ),
                                             ),
-                                          ),
-                                        );
+                                          );
+                                        } else {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Error al generar el código QR')),
+                                          );
+                                        }
                                       } else {
                                         ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('Error en pre-factura: ${preFacturaResponse.statusCode}')),
+                                          const SnackBar(content: Text('Error al generar la pre-factura')),
                                         );
                                       }
                                     } catch (e) {
@@ -305,19 +344,63 @@ class _PrefacturaPageState extends State<PrefacturaPage> {
   }
 }
 
-class QRResponsePage extends StatelessWidget {
+class QRResponsePage extends StatefulWidget {
   final Map<String, dynamic> qrResponse;
+  final String sucursal;
+  final int regional;
 
-  const QRResponsePage({super.key, required this.qrResponse});
+  const QRResponsePage({
+    super.key,
+    required this.qrResponse,
+    required this.sucursal,
+    required this.regional,
+  });
+
+  @override
+  State<QRResponsePage> createState() => _QRResponsePageState();
+}
+
+class _QRResponsePageState extends State<QRResponsePage> {
+  final GlobalKey _qrKey = GlobalKey();
+
+  Future<void> _captureAndDownloadQR() async {
+    try {
+      RenderRepaintBoundary boundary =
+          _qrKey.currentContext?.findRenderObject() as RenderRepaintBoundary;
+
+      if (boundary.debugNeedsPaint) {
+        await Future.delayed(const Duration(milliseconds: 20));
+        return _captureAndDownloadQR(); // Espera a que termine el render
+      }
+
+      final image = await boundary.toImage(pixelRatio: 3.0);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      final bytes = byteData!.buffer.asUint8List();
+      await downloadImage(bytes);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('QR descargado correctamente')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al descargar: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final String imagenBase64 = qrResponse['imagen'];
+    final String imagenBase64 = widget.qrResponse['imagen'];
     final Uint8List imageBytes = base64Decode(imagenBase64);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('QR Response'),
+        title: Text(
+          widget.regional == 8
+              ? 'QR CLINICA BIENESTAR Central'
+              : widget.regional == 9
+                  ? 'QR BIENESTAR Satélite'
+                  : 'QR generado',
+        ),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -345,22 +428,28 @@ class QRResponsePage extends StatelessWidget {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  Image.memory(imageBytes),
+                  RepaintBoundary(
+                    key: _qrKey,
+                    child: Image.memory(imageBytes),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Sucursal: ${widget.sucursal} | Regional: ${widget.regional}',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 24),
                   TextButton.icon(
-                    onPressed: () {
-                      downloadImage(imageBytes);
-                    },
+                    onPressed: _captureAndDownloadQR,
                     icon: const Icon(Icons.download),
                     label: const Text('Descargar imagen QR'),
                   ),
                   const SizedBox(height: 16),
                   TextButton.icon(
                     onPressed: () {
-                      Navigator.pushNamed(context, '/mis_reservas');
+                      Navigator.pushNamed(context, '/mis_atenciones_medicas');
                     },
                     icon: const Icon(Icons.arrow_forward),
-                    label: const Text('Ir a mis reservas'),
+                    label: const Text('Ir a mis Atenciones Médicas'),
                   ),
                 ],
               ),
@@ -371,3 +460,4 @@ class QRResponsePage extends StatelessWidget {
     );
   }
 }
+

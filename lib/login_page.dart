@@ -24,8 +24,8 @@ class _LoginPageState extends State<LoginPage> {
   String? _materno;
   String? _ci;
 
-  final String apiUrl = 'http://test.api.movil.cies.org.bo/afiliacion/login_codigo_tes/';
-
+final String apiUrl = 'https://api.movil.cies.org.bo/afiliacion/login_codigo_tes/';
+//final String apiUrl = 'http://test.api.movil.cies.org.bo/afiliacion/login_codigo_tes/';
   Future<void> loginPaciente(String documento) async {
     if (documento.isEmpty || !RegExp(r'^[0-9]+').hasMatch(documento)) {
       setState(() {
@@ -235,7 +235,7 @@ class _LoginPageState extends State<LoginPage> {
                           const SizedBox(height: 20),
                           TextButton(
                             onPressed: () {
-                              Navigator.pushNamed(context, '/register');
+                              Navigator.pushNamed(context, '/register_page');
                             },
                             child: const Text(
                               "Registrarse",

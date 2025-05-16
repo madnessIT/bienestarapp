@@ -127,7 +127,7 @@ class PapPage extends StatelessWidget {
 
   Future<List> _fetchPapHistorial(int? expedienteClinico) async {
     final url =
-        'http://test.api.movil.cies.org.bo/resultado_pap_informado/list_pap_historial_con_resultado_informados_no_informados/?expediente_clinico=$expedienteClinico';
+        'https://api.movil.cies.org.bo/resultado_pap_informado/list_pap_historial_con_resultado_informados_no_informados/?expediente_clinico=$expedienteClinico';
     final response = await http.get(Uri.parse(url));
     print('Fetching data from: $url');
 
@@ -146,7 +146,7 @@ class PapPage extends StatelessWidget {
 
 Future<void> _downloadPdf(int id) async {
   final url = Uri.parse(
-      'http://test.api.movil.cies.org.bo/examen_complementario/resultado_pap_resultado_editar/$id/resultado_pap_documento/');
+      'https://api.movil.cies.org.bo/examen_complementario/resultado_pap_resultado_editar/$id/resultado_pap_documento/');
   
   if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
     throw Exception('No se pudo abrir la URL para descargar el PDF.');

@@ -22,8 +22,8 @@ class _MedicoAtencionPageState extends State<MedicoAtencionPage> {
 
     // Obtener datos de los proveedores
     final servicioNombre = Provider.of<ServicioProvider>(context).servicioNombre;
-    final descripcion = Provider.of<SucursalProvider>(context).descripcion;
-
+    final descripcion = Provider.of<SucursalProvider>(context, listen: false).descripcion;
+   // final descripcion = SucursalProvider().descripcion ?? 'Descripción no disponible';
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -132,7 +132,9 @@ class _MedicoAtencionPageState extends State<MedicoAtencionPage> {
                               String nombreCompleto = '${persona['nombres'] ?? 'Nombre no disponible'} '
                                   '${persona['paterno'] ?? ''} ${persona['materno'] ?? ''}';
                               // ID del doctor
-                              String doctorId = medico['id']?.toString() ?? 'ID no disponible';
+                              int doctorId = medico['id'] is int
+                                ? medico['id']
+                                : int.tryParse(medico['id']?.toString() ?? '') ?? -1;
 
                               return Card(
                                 elevation: 4,
@@ -146,7 +148,7 @@ class _MedicoAtencionPageState extends State<MedicoAtencionPage> {
                                     child: Icon(Icons.person, color: Colors.white),
                                   ),
                                   title: Text(
-                                    '$nombreCompleto (ID: $doctorId)',
+                                    '$nombreCompleto ',
                                     style: const TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
@@ -169,7 +171,9 @@ class _MedicoAtencionPageState extends State<MedicoAtencionPage> {
                                       ),
                                     ),
                                     ...agendaTurnos.map((turno) {
-                                      String turnoId = turno['id']?.toString() ?? 'ID no disponible';
+                                        int turnoId = turno['id'] is int
+                                          ? turno['id']
+                                          : int.tryParse(turno['id']?.toString() ?? '') ?? -1;
                                       String turnoInicio = turno['hora_inicio'] ?? 'Inicio no disponible';
                                       String turnoFin = turno['hora_fin'] ?? 'Fin no disponible';
                                       String turnoFecha = turno['fecha'] ?? 'Fecha no disponible';
@@ -187,7 +191,7 @@ class _MedicoAtencionPageState extends State<MedicoAtencionPage> {
                                         ),
                                         child: ListTile(
                                           leading: const Icon(Icons.access_time, color: Color.fromARGB(255, 1, 179, 45)),
-                                          title: Text('Turno ID: $turnoId'),
+                                         // title: Text('Turno ID: $turnoId'),
                                           subtitle: Text('De: $turnoInicio a $turnoFin'),
                                           onTap: () {
                                             setState(() {

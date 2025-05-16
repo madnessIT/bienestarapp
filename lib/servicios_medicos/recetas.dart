@@ -40,7 +40,7 @@ class _RecetasPageState extends State<RecetasPage> {
       }
 
       final url = Uri.parse(
-        'http://test.api.movil.cies.org.bo/historia_clinica/expediente_clinico/$expedienteClinico/',
+        'https://api.movil.cies.org.bo/historia_clinica/expediente_clinico/$expedienteClinico/',
       );
 
       final response = await http.get(url);

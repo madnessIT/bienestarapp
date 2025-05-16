@@ -13,7 +13,7 @@ class ReservarCitasPage extends StatefulWidget {
 
 class _ReservarCitasPageState extends State<ReservarCitasPage> {
   DateTime? _selectedDate;
-  String? _selectedRegionalId = '1';
+  final String _selectedRegionalId = '1'; // Regional por defecto: La Paz (ID=1)
   bool _isLoadingRegional = true;
   List<dynamic> regionales = [];
 
@@ -21,8 +21,11 @@ class _ReservarCitasPageState extends State<ReservarCitasPage> {
   void initState() {
     super.initState();
     _selectedDate = DateTime.now();
+    // Se establece la fecha y la regional por defecto en el provider
     Provider.of<FechaProvider>(context, listen: false)
-        .setFecha(_selectedDate!.toIso8601String().split('T')[0]);
+      ..setFecha(_selectedDate!.toIso8601String().split('T')[0])
+      ..setDepartamentoId(_selectedRegionalId)
+      ..setDepartamentoNombre('La Paz'); // Regional fija
     _fetchRegionales();
   }
 
@@ -43,18 +46,27 @@ class _ReservarCitasPageState extends State<ReservarCitasPage> {
   }
 
   Future<void> _fetchRegionales() async {
-    var url = Uri.parse('http://test.api.movil.cies.org.bo/administracion/departamentos/');
+    //var url = Uri.parse('http://test.api.movil.cies.org.bo/administracion/departamentos/');
+    var url = Uri.parse('https://api.movil.cies.org.bo/administracion/departamentos/');
     try {
       var response = await http.get(url);
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
         setState(() {
+          // Filtramos solo las regionales activas
           regionales = data.where((regional) => regional['activo'] == true).toList();
           _isLoadingRegional = false;
+          // Actualizamos el provider si se encuentra la regional "1"
           if (regionales.any((regional) => regional['id'].toString() == '1')) {
-            _selectedRegionalId = '1';
+            Provider.of<FechaProvider>(context, listen: false)
+              ..setDepartamentoId(_selectedRegionalId)
+              ..setDepartamentoNombre('La Paz');
           } else if (regionales.isNotEmpty) {
-            _selectedRegionalId = regionales.first['id'].toString();
+            // Si no se encuentra la regional "1", se toma la primera disponible
+            final first = regionales.first;
+            Provider.of<FechaProvider>(context, listen: false)
+              ..setDepartamentoId(first['id'].toString())
+              ..setDepartamentoNombre(first['nombre']);
           }
         });
       } else {
@@ -72,7 +84,7 @@ class _ReservarCitasPageState extends State<ReservarCitasPage> {
   }
 
   void _goToServiciosClinica() {
-    if (_selectedDate != null && _selectedRegionalId != null) {
+    if (_selectedDate != null) {
       Navigator.pushNamed(
         context,
         '/servicio_atencion',
@@ -145,17 +157,9 @@ class _ReservarCitasPageState extends State<ReservarCitasPage> {
                         ),
                         const SizedBox(height: 10),
                         _buildDateButton(),
-                        const SizedBox(height: 20),
-                        const Text(
-                          'Seleccione una Regional:',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 10),
-                        _buildRegionalDropdown(),
                         const SizedBox(height: 30),
                         ElevatedButton(
-                          onPressed: (_selectedDate != null && _selectedRegionalId != null)
+                          onPressed: (_selectedDate != null)
                               ? _goToServiciosClinica
                               : null,
                           style: ElevatedButton.styleFrom(
@@ -198,43 +202,5 @@ class _ReservarCitasPageState extends State<ReservarCitasPage> {
         ),
       ),
     );
-  }
-
-  Widget _buildRegionalDropdown() {
-    return _isLoadingRegional
-        ? const Center(child: CircularProgressIndicator())
-        : DropdownButtonFormField<String>(
-            value: _selectedRegionalId,
-            decoration: InputDecoration(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            hint: const Text('Seleccione la Regional'),
-            onChanged: (String? newValue) {
-              setState(() {
-                _selectedRegionalId = newValue;
-                if (newValue != null) {
-                  final regional = regionales.firstWhere(
-                    (r) => r['id'].toString() == newValue,
-                    orElse: () => null,
-                  );
-                  final regionalNombre = regional != null ? regional['nombre'] : '';
-                  Provider.of<FechaProvider>(context, listen: false)
-                    ..setDepartamentoId(newValue)
-                    ..setDepartamentoNombre(regionalNombre);
-                }
-              });
-            },
-            items: regionales
-                .where((regional) => regional['id'].toString() == '1')
-                .map((regional) {
-                  return DropdownMenuItem<String>(
-                    value: regional['id'].toString(),
-                    child: Text(regional['nombre']),
-                  );
-                }).toList(),
-          );
   }
 }

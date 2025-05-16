@@ -17,11 +17,9 @@ class SucursalAtencionPage extends StatelessWidget {
     final String especialidadId = args?['especialidad_id']?.toString() ?? '';
     final List<dynamic> sucursales = args?['sucursales'] ?? [];
 
-    // Obtener datos del FechaProvider
     final fechaProvider = Provider.of<FechaProvider>(context);
     final String departamentoNombre = fechaProvider.departamentoNombre ?? 'Sin nombre';
 
-    // Obtener el nombre del servicio desde el ServicioProvider
     final servicioNombre = Provider.of<ServicioProvider>(context).servicioNombre;
 
     if (fecha.isEmpty || departamentoNombre.isEmpty || especialidadId.isEmpty) {
@@ -31,43 +29,11 @@ class SucursalAtencionPage extends StatelessWidget {
       );
     }
 
-    Future<void> fetchMedicos(String codigo) async {
-      if (codigo.isEmpty) return;
-
-      var url = Uri.parse(
-        'http://test.api.movil.cies.org.bo/agenda/agendas/turno_by_medico_by_especialidad_and_regional/?regional_id=$codigo&especialidad_id=$especialidadId&fecha=$fecha',
-      );
-
-      try {
-        var response = await http.get(url);
-        if (response.statusCode == 200) {
-          var medicos = jsonDecode(response.body);
-          Navigator.pushNamed(
-            context,
-            '/medico_atencion',
-            arguments: {
-              'fecha': fecha,
-              'especialidad_id': especialidadId,
-              'codigo': codigo,
-              'medicos': medicos,
-            },
-          );
-        } else {
-          print('Error al obtener los médicos: ${response.statusCode}');
-        }
-      } catch (e) {
-        print('Error en la conexión: $e');
-      }
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text(
           'Sucursales Disponibles',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
@@ -105,16 +71,14 @@ class SucursalAtencionPage extends StatelessWidget {
                       )
                     : Column(
                         children: [
-                          // Logo
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 16.0),
-                            child: Image.asset(
-                              'assets/images/logo.png',
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16.0),
+                            child: Image(
+                              image: AssetImage('assets/images/logo.png'),
                               height: 80,
                               fit: BoxFit.contain,
                             ),
                           ),
-                          // Encabezado con datos de la atención
                           Card(
                             color: Colors.blue[50],
                             elevation: 4,
@@ -145,19 +109,15 @@ class SucursalAtencionPage extends StatelessWidget {
                               ),
                             ),
                           ),
-                          // Lista de sucursales
                           Expanded(
                             child: ListView.builder(
                               itemCount: sucursales.length,
                               itemBuilder: (context, index) {
-                                var sucursal = sucursales[index];
-                                var codigo = sucursal['codigo']?.toString() ?? '';
-                                var descripcion = sucursal['descripcion']?.toString() ?? 'Sucursal sin nombre';
-                                var direccion = sucursal['direccion']?.toString() ?? 'Dirección no disponible';
-
-                                // Actualizamos el SucursalProvider
-                                final sucursalProvider = Provider.of<SucursalProvider>(context, listen: false);
-                                sucursalProvider.setSucursal(codigo, descripcion);
+                                final sucursal = sucursales[index];
+                                final id = sucursal['id']?.toString() ?? '';
+                                final codigo = sucursal['codigo']?.toString() ?? '';
+                                final descripcion = sucursal['descripcion']?.toString() ?? 'Sucursal sin nombre';
+                                final direccion = sucursal['direccion']?.toString() ?? 'Dirección no disponible';
 
                                 return Card(
                                   margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -173,12 +133,14 @@ class SucursalAtencionPage extends StatelessWidget {
                                     ),
                                     subtitle: Text(
                                       direccion,
-                                      style: const TextStyle(color: Colors.grey, fontSize: 14),
+                                      style: TextStyle(color: Colors.grey[700], fontSize: 13),
                                     ),
                                     trailing: const Icon(Icons.arrow_forward_ios, color: Colors.blueAccent),
                                     onTap: () {
                                       if (codigo.isNotEmpty) {
-                                        fetchMedicos(codigo);
+                                        Provider.of<SucursalProvider>(context, listen: false)
+                                            .setSucursal(codigo, descripcion, id);
+                                        _fetchMedicos(context, codigo, especialidadId, fecha);
                                       } else {
                                         ScaffoldMessenger.of(context).showSnackBar(
                                           const SnackBar(content: Text("Código de sucursal no disponible.")),
@@ -197,6 +159,55 @@ class SucursalAtencionPage extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> _fetchMedicos(
+    BuildContext context,
+    String codigo,
+    String especialidadId,
+    String fecha,
+  ) async {
+    final url = Uri.parse(
+      'https://api.movil.cies.org.bo/agenda/agendas/turno_by_medico_by_especialidad_and_regional/?regional_id=$codigo&especialidad_id=$especialidadId&fecha=$fecha',
+    );
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final response = await http.get(url);
+      Navigator.of(context).pop(); // Cierra el loader
+
+      if (response.statusCode == 200) {
+        final List<dynamic> medicos = jsonDecode(response.body);
+        final List<dynamic> medicosInternet = medicos.where((m) => m['internet'] == true).toList();
+
+        Navigator.pushNamed(
+          context,
+          '/medico_atencion',
+          arguments: {
+            'fecha': fecha,
+            'especialidad_id': especialidadId,
+            'codigo': codigo,
+            'medicos': medicosInternet,
+          },
+        );
+      } else {
+        _showError(context, 'Error al obtener los médicos: ${response.statusCode}');
+      }
+    } catch (e) {
+      Navigator.of(context).pop(); // Cierra el loader si hay error
+      _showError(context, 'Error en la conexión: $e');
+    }
+  }
+
+  void _showError(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
     );
   }
 }

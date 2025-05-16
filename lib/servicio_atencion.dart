@@ -150,7 +150,7 @@ class _ServiciosAtencionPageState extends State<ServiciosAtencionPage> {
                                         onTap: () {
                                           if (especialidades.isNotEmpty) {
                                             String especialidadId = especialidades[0]['id'].toString();
-                                            _onEspecialidadSelected(servicio['nombre'], servicio['codigo'], especialidadId);
+                                            _onEspecialidadSelected(servicio['nombre'], servicio['codigo'].toString(), servicio['id'].toString(), especialidadId);
                                           } else {
                                             ScaffoldMessenger.of(context).showSnackBar(
                                               const SnackBar(content: Text("No hay especialidades disponibles para este servicio")),
@@ -176,7 +176,8 @@ class _ServiciosAtencionPageState extends State<ServiciosAtencionPage> {
     if (fecha.isEmpty || departamentoId.isEmpty) return;
 
     var url = Uri.parse(
-      'http://test.api.movil.cies.org.bo/administracion/servicios_by_departamento_fecha/?fecha=$fecha&departamento_id=$departamentoId',
+      //'http://test.api.movil.cies.org.bo/administracion/servicios_by_departamento_fecha/?fecha=$fecha&departamento_id=$departamentoId',
+      'https://api.movil.cies.org.bo/administracion/servicios_by_departamento_fecha/?fecha=$fecha&departamento_id=$departamentoId',
     );
 
     try {
@@ -201,11 +202,12 @@ class _ServiciosAtencionPageState extends State<ServiciosAtencionPage> {
     }
   }
 
-  void _onEspecialidadSelected(String servicioNombre, String servicioCodigo, String especialidadId) async {
-    Provider.of<ServicioProvider>(context, listen: false).setServicio(servicioNombre, servicioCodigo);
+ void _onEspecialidadSelected(String servicioId, String servicioNombre, String servicioCodigo, String especialidadId) async {
+    Provider.of<ServicioProvider>(context, listen: false).setServicio(servicioId, servicioNombre, servicioCodigo);
 
     var url = Uri.parse(
-      'http://test.api.movil.cies.org.bo/agenda/regionales_tes/?especialidad=$especialidadId&departamento=$departamentoId&fecha=$fecha',
+      //'http://test.api.movil.cies.org.bo/agenda/regionales_tes/?especialidad=$especialidadId&departamento=$departamentoId&fecha=$fecha',
+       'https://api.movil.cies.org.bo/agenda/regionales_tes/?especialidad=$especialidadId&departamento=$departamentoId&fecha=$fecha',
     );
 
     try {

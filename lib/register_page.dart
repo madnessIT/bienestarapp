@@ -55,7 +55,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   String? registroStatus;
 
-  final String apiUrl = 'http://test.api.movil.cies.org.bo/afiliacion/';
+  final String apiUrl = 'https://api.movil.cies.org.bo/afiliacion/';
 
   Future<void> registrarPaciente() async {
     var url = Uri.parse(apiUrl);

@@ -1,16 +1,13 @@
-// ignore_for_file: deprecated_member_use
 import 'dart:html' as html;
 import 'dart:typed_data';
 
-void downloadImage(Uint8List imageBytes) {
-  final blob = html.Blob([imageBytes]);
+Future<void> downloadImage(Uint8List bytes) async {
+  final blob = html.Blob([bytes]);
   final url = html.Url.createObjectUrlFromBlob(blob);
-  final anchor = html.document.createElement('a') as html.AnchorElement
-    ..href = url
-    ..style.display = 'none'
-    ..download = 'qr_code.png';
-  html.document.body!.append(anchor);
-  anchor.click();
-  anchor.remove();
+
+  final anchor = html.AnchorElement(href: url)
+    ..setAttribute("download", "qr_image_${DateTime.now().millisecondsSinceEpoch}.png")
+    ..click();
+
   html.Url.revokeObjectUrl(url);
 }

@@ -1,0 +1,2 @@
+D:/miapp/bienestarapp/app_pacientes/android/app/.cxx/RelWithDebInfo/6z4gv3c2/arm64-v8a/CMakeFiles/edit_cache.dir
+D:/miapp/bienestarapp/app_pacientes/android/app/.cxx/RelWithDebInfo/6z4gv3c2/arm64-v8a/CMakeFiles/rebuild_cache.dir
