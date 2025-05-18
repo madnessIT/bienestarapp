@@ -1,0 +1,2 @@
+D:/miapp/bienestarapp/app_pacientes/android/app/.cxx/Debug/3443fm4n/x86/CMakeFiles/edit_cache.dir
+D:/miapp/bienestarapp/app_pacientes/android/app/.cxx/Debug/3443fm4n/x86/CMakeFiles/rebuild_cache.dir

@@ -1,60 +1,72 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'expediente_provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'expediente_provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
   @override
-  _LoginPageState createState() => _LoginPageState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController _documentoController = TextEditingController();
+  final TextEditingController _docController = TextEditingController();
   final TextEditingController _pinController = TextEditingController();
-  String? loginStatus;
+
   bool _isLoading = false;
   bool _pinSent = false;
-  bool _showRegisterButton = false;
-  String? _pinApp;
+  bool _showRegister = false;
+
+  String? _backendPin;
   String? _nombre;
   String? _paterno;
   String? _materno;
   String? _ci;
 
-final String apiUrl = 'https://api.movil.cies.org.bo/afiliacion/login_codigo_tes/';
-//final String apiUrl = 'http://test.api.movil.cies.org.bo/afiliacion/login_codigo_tes/';
-  Future<void> loginPaciente(String documento) async {
-    if (documento.isEmpty || !RegExp(r'^[0-9]+').hasMatch(documento)) {
-      setState(() {
-        loginStatus = 'Por favor, ingrese un documento de identidad válido';
-      });
+  String? _errorMessage;
+  String? _infoMessage;
+
+  final String apiUrl = 'https://api.movil.cies.org.bo/afiliacion/login_codigo_tes/';
+
+  @override
+  void dispose() {
+    _docController.dispose();
+    _pinController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleLogin() async {
+    final documento = _docController.text.trim();
+
+    if (documento.isEmpty || !RegExp(r'^\d+$').hasMatch(documento)) {
+      setState(() => _errorMessage = 'Por favor, ingrese un documento válido.');
       return;
     }
 
     setState(() {
       _isLoading = true;
-      loginStatus = null;
+      _errorMessage = null;
+      _infoMessage = null;
     });
 
-    var url = Uri.parse('$apiUrl?documento=$documento');
+    final url = Uri.parse('$apiUrl?documento=$documento');
 
     try {
-      var response = await http.post(
+      final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({}),
       );
 
-      var data = jsonDecode(response.body);
+      final data = jsonDecode(response.body);
       final expedienteProvider = Provider.of<ExpedienteProvider>(context, listen: false);
-      print("Respuesta de la API: ${response.body}");
+
       if (response.statusCode == 200 &&
           data.containsKey('expedienteclinico') &&
           data['expedienteclinico']['pin_app'] != null) {
-        // Almacenar datos en el provider
+        
         expedienteProvider.setPatientId(data['id']);
         expedienteProvider.setExpedienteclinicoId(data['expedienteclinico']['id']);
         expedienteProvider.setExpedienteClinico(data['expedienteclinico']['expediente_clinico']);
@@ -63,48 +75,45 @@ final String apiUrl = 'https://api.movil.cies.org.bo/afiliacion/login_codigo_tes
         expedienteProvider.setdocumento(data['documento']);
 
         setState(() {
-          _pinApp = data['expedienteclinico']['pin_app'].toString();
+          _backendPin = data['expedienteclinico']['pin_app'].toString();
           _nombre = data['nombres'];
           _paterno = data['paterno'];
           _materno = data['materno'];
           _ci = data['documento'];
-          loginStatus = 'PIN enviado. Por favor ingresa el PIN.';
+
+          _infoMessage = 'PIN enviado. Por favor ingréselo.';
           _pinSent = true;
-          _isLoading = false;
-          _showRegisterButton = false;
+          _showRegister = false;
         });
+
       } else if (response.statusCode == 302) {
         setState(() {
-          loginStatus = 'Paciente no encontrado. ¿Deseas registrarte?';
-          _isLoading = false;
-          _showRegisterButton = true;
+          _showRegister = true;
+          _errorMessage = 'Paciente no encontrado. ¿Deseas registrarte?';
         });
       } else {
         setState(() {
-          loginStatus = 'Error en el login. Código: ${response.statusCode}';
-          _isLoading = false;
-          _showRegisterButton = false;
+          _errorMessage = 'Error: ${response.statusCode}';
         });
       }
     } catch (e) {
       setState(() {
-        loginStatus = 'Error en la conexión: ${e.toString()}';
-        _isLoading = false;
-        _showRegisterButton = false;
+        _errorMessage = 'Error de conexión: ${e.toString()}';
       });
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
-  Future<void> confirmarPin() async {
-    String pin = _pinController.text;
+  void _confirmPin() {
+    final pin = _pinController.text.trim();
+
     if (pin.isEmpty) {
-      setState(() {
-        loginStatus = 'Por favor, ingrese su PIN';
-      });
+      setState(() => _errorMessage = 'Por favor, ingrese su PIN');
       return;
     }
 
-    if (pin == _pinApp) {
+    if (pin == _backendPin) {
       Navigator.pushNamed(
         context,
         '/menu_paciente',
@@ -116,16 +125,13 @@ final String apiUrl = 'https://api.movil.cies.org.bo/afiliacion/login_codigo_tes
         },
       );
     } else {
-      setState(() {
-        loginStatus = 'El PIN ingresado es incorrecto';
-      });
+      setState(() => _errorMessage = 'PIN incorrecto');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Fondo degradado para la web
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -150,11 +156,7 @@ final String apiUrl = 'https://api.movil.cies.org.bo/afiliacion/login_codigo_tes
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Image.asset(
-                          'assets/images/logo.png',
-                          height: 120,
-                          fit: BoxFit.contain,
-                        ),
+                        Image.asset('assets/images/logo.png', height: 120),
                         const SizedBox(height: 20),
                         Text(
                           'Iniciar Sesión',
@@ -166,7 +168,7 @@ final String apiUrl = 'https://api.movil.cies.org.bo/afiliacion/login_codigo_tes
                         ),
                         const SizedBox(height: 20),
                         TextField(
-                          controller: _documentoController,
+                          controller: _docController,
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                             labelText: 'Documento de Identidad',
@@ -180,27 +182,21 @@ final String apiUrl = 'https://api.movil.cies.org.bo/afiliacion/login_codigo_tes
                         _isLoading
                             ? const CircularProgressIndicator()
                             : ElevatedButton(
+                                onPressed: _handleLogin,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.green,
+                                  minimumSize: const Size.fromHeight(50),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
                                   ),
-                                  minimumSize: const Size.fromHeight(50),
                                 ),
-                                onPressed: () => loginPaciente(_documentoController.text),
-                                child: const Text(
-                                  "Iniciar Sesión",
-                                  style: TextStyle(fontSize: 18),
-                                ),
+                                child: const Text("Iniciar Sesión", style: TextStyle(fontSize: 18)),
                               ),
-                        if (loginStatus != null) ...[
-                          const SizedBox(height: 20),
-                          Text(
-                            loginStatus!,
-                            style: const TextStyle(color: Colors.red, fontSize: 16),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
+                        const SizedBox(height: 20),
+                        if (_infoMessage != null)
+                          Text(_infoMessage!, style: const TextStyle(color: Colors.blue)),
+                        if (_errorMessage != null)
+                          Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
                         if (_pinSent) ...[
                           const SizedBox(height: 20),
                           TextField(
@@ -217,30 +213,24 @@ final String apiUrl = 'https://api.movil.cies.org.bo/afiliacion/login_codigo_tes
                           ),
                           const SizedBox(height: 20),
                           ElevatedButton(
+                            onPressed: _confirmPin,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blue.shade800,
+                              minimumSize: const Size.fromHeight(50),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              minimumSize: const Size.fromHeight(50),
                             ),
-                            onPressed: confirmarPin,
-                            child: const Text(
-                              "Confirmar PIN",
-                              style: TextStyle(fontSize: 18),
-                            ),
+                            child: const Text("Confirmar PIN", style: TextStyle(fontSize: 18)),
                           ),
                         ],
-                        if (_showRegisterButton) ...[
+                        if (_showRegister) ...[
                           const SizedBox(height: 20),
                           TextButton(
                             onPressed: () {
                               Navigator.pushNamed(context, '/register_page');
                             },
-                            child: const Text(
-                              "Registrarse",
-                              style: TextStyle(fontSize: 16),
-                            ),
+                            child: const Text("Registrarse", style: TextStyle(fontSize: 16)),
                           ),
                         ],
                       ],
