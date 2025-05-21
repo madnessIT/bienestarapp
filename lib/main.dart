@@ -8,7 +8,7 @@ import 'login_page.dart';
 import 'register_page.dart';
 import 'menu_paciente.dart';
 import 'servicios_medicos.dart';
-import 'mis_facturas.dart';
+import 'facturas_page.dart';
 import 'mis_atenciones_medicas.dart';
 import 'contactanos.dart';
 import 'reservar_citas.dart';
@@ -55,7 +55,7 @@ class MyApp extends StatelessWidget {
         '/register_page': (context) => const RegisterPage(),
         '/menu_paciente': (context) => const MenuPacientePage(),
         '/servicios_medicos': (context) => const ServiciosMedicosPage(),
-        '/mis_facturas': (context) => const MisFacturasPage(),
+        '/facturas_page': (context) =>  FacturasPage(),
         '/mis_atenciones_medicas': (context) => const MisAtencionesMedicasPage(),
         '/contactanos': (context) => const ContactanosPage(),
         '/reservar_citas': (context) => const ReservarCitasPage(),

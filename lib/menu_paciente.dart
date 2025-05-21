@@ -112,7 +112,7 @@ class MenuPacientePage extends StatelessWidget {
                           icon: Icons.receipt,
                           title: 'Mis facturas',
                           color: const Color.fromARGB(255, 1, 179, 45),
-                          routeName: '/mis_facturas',
+                          routeName: '/facturas_page',
                         ),
                         _buildMenuOption(
                           context,

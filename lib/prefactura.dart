@@ -144,7 +144,7 @@ class _PrefacturaPageState extends State<PrefacturaPage> {
                                     });
                                     final selectedService = servicios.first;
                                     final patientId = expedienteProvider.PatientId ?? 0;
-                                    print('Código de sucursal: ${sucursalProvider.codigo}');
+                                    //print('Código de sucursal: ${sucursalProvider.codigo}');
 
                                     final preFacturaPayload = {
                                       "paciente": patientId,
@@ -168,7 +168,7 @@ class _PrefacturaPageState extends State<PrefacturaPage> {
                                       ]
                                     };
 
-                                    print('Payload pre-factura enviado: $preFacturaPayload');
+                                    //print('Payload pre-factura enviado: $preFacturaPayload');
                                     //final preFacturaUrl = 'http://test.api.movil.cies.org.bo/facturacion/pre_factura/?regional=${sucursalProvider.codigo}';
                                     final preFacturaUrl = 'https://api.movil.cies.org.bo/facturacion/pre_factura/?regional=${sucursalProvider.codigo}';
                                     try {
@@ -181,7 +181,7 @@ class _PrefacturaPageState extends State<PrefacturaPage> {
                                         body: jsonEncode(preFacturaPayload),
                                       );
 
-                                      print('Respuesta de pre-factura: ${preFacturaResponse.body}');
+                                     // print('Respuesta de pre-factura: ${preFacturaResponse.body}');
 
                                       if (preFacturaResponse.statusCode == 200 || preFacturaResponse.statusCode == 201) {
                                         final preFacturaData = jsonDecode(preFacturaResponse.body);
@@ -218,7 +218,7 @@ class _PrefacturaPageState extends State<PrefacturaPage> {
                                         };
 
                                         // Imprimir el contenido de qrPayload
-                                          print('Payload QR generado: $qrPayload');
+                                         // print('Payload QR generado: $qrPayload');
 
                                         // Construir URL del endpoint con regional y sucursal
                                         final qrUrl =
@@ -234,7 +234,7 @@ class _PrefacturaPageState extends State<PrefacturaPage> {
                                           body: jsonEncode(qrPayload),
                                         );
 
-                                        print('Respuesta de QR: ${qrResponse.body}');
+                                        //print('Respuesta de QR: ${qrResponse.body}');
 
                                         if (qrResponse.statusCode == 200) {
                                           // Navegar a QRResponsePage con datos
