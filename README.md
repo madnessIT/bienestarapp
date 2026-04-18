@@ -48,6 +48,7 @@ Este proyecto fue desarrollado como una implementación práctica de consumo de 
 
 
 <img width="360" height="722" alt="2" src="https://github.com/user-attachments/assets/cd64212c-8675-418b-b421-fded8f071b02" />
+<img width="360" height="722" alt="3" src="https://github.com/user-attachments/assets/b918b1c5-df27-4e74-94d5-1729ef1526da" />
 
 ---
 
