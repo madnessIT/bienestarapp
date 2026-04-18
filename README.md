@@ -44,6 +44,11 @@ Este proyecto fue desarrollado como una implementación práctica de consumo de 
   * Acceso a resultados clínicos mediante API
 
 ---
+## 📸 Capturas de pantalla
+
+<img width="720" height="1444" alt="2" src="https://github.com/user-attachments/assets/0c86cb1f-0c48-433d-a9dd-ce8b8653ac92" />
+
+---
 
 ## 🛠️ Tecnologías utilizadas
 
