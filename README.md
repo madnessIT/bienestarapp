@@ -46,7 +46,8 @@ Este proyecto fue desarrollado como una implementación práctica de consumo de 
 ---
 ## 📸 Capturas de pantalla
 
-<img width="720" height="1444" alt="2" src="https://github.com/user-attachments/assets/0c86cb1f-0c48-433d-a9dd-ce8b8653ac92" />
+
+<img width="360" height="722" alt="2" src="https://github.com/user-attachments/assets/cd64212c-8675-418b-b421-fded8f071b02" />
 
 ---
 
@@ -120,7 +121,7 @@ Se continúan mejorando funcionalidades, estructura y experiencia de usuario.
 
 ## 👨‍💻 Autor
 
-Desarrollado por **Sergio Doynel**
+Desarrollado por **iMadness networks**
 
 * Experiencia en desarrollo móvil con Flutter
 * Integración de APIs y soluciones orientadas a negocio
