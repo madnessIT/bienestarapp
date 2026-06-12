@@ -14,6 +14,27 @@ class ModificarPacientePage extends StatefulWidget {
 class _ModificarPacientePageState extends State<ModificarPacientePage> {
   Map<String, dynamic>? loginData;
   bool isLoading = false;
+  bool isSaving = false;
+
+  final _formKey = GlobalKey<FormState>();
+
+  final TextEditingController _nombresController = TextEditingController();
+  final TextEditingController _paternoController = TextEditingController();
+  final TextEditingController _maternoController = TextEditingController();
+  final TextEditingController _domicilioController = TextEditingController();
+  final TextEditingController _telefonoController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nombresController.dispose();
+    _paternoController.dispose();
+    _maternoController.dispose();
+    _domicilioController.dispose();
+    _telefonoController.dispose();
+    _emailController.dispose();
+    super.dispose();
+  }
 
   Future<void> fetchLoginData(documento) async {
     setState(() {
@@ -22,14 +43,22 @@ class _ModificarPacientePageState extends State<ModificarPacientePage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://test.api.movil.cies.org.bo/afiliacion/login_codigo_tes/?documento=$documento'),
-        //headers: {'Content-Type': 'application/json'},
-        //body: json.encode({'documento': documento}),
+        Uri.parse('https://api.movil.cies.org.bo/afiliacion/login_codigo_tes/?documento=$documento'),
       );
 
       if (response.statusCode == 200) {
         setState(() {
           loginData = json.decode(response.body);
+          
+          _nombresController.text = loginData!['nombres']?.toString() ?? '';
+          _paternoController.text = loginData!['paterno']?.toString() ?? '';
+          _maternoController.text = loginData!['materno']?.toString() ?? '';
+          _domicilioController.text = loginData!['domicilio']?.toString() ?? '';
+
+          if (loginData!['expedienteclinico'] != null) {
+            _telefonoController.text = loginData!['expedienteclinico']['telefono']?.toString() ?? '';
+            _emailController.text = loginData!['expedienteclinico']['email']?.toString() ?? '';
+          }
         });
       } else {
         print('Respuesta del servidor: ${response.body}');
@@ -47,6 +76,26 @@ class _ModificarPacientePageState extends State<ModificarPacientePage> {
     }
   }
 
+  Future<void> _guardarDatos() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      isSaving = true;
+    });
+
+    // TODO: Implementar la petición PUT/POST al backend para guardar los datos modificados.
+    // Simulamos un retraso
+    await Future.delayed(const Duration(seconds: 2));
+
+    setState(() {
+      isSaving = false;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Datos guardados correctamente')),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -59,47 +108,77 @@ class _ModificarPacientePageState extends State<ModificarPacientePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Datos de Login'),
+        title: const Text('Modificar Mis Datos', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color.fromARGB(255, 1, 179, 45), Color.fromARGB(255, 0, 62, 143)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : loginData != null
-              ? ListView(
-                  padding: const EdgeInsets.all(16.0),
-                  children: [
-                    //Text('ID: ${loginData!['id']}'),
-                    Text('Nombres: ${loginData!['nombres']}'),
-                    Text('Paterno: ${loginData!['paterno']}'),
-                    Text('Materno: ${loginData!['materno']}'),
-                    Text('Sexo: ${loginData!['sexo']}'),
-                    Text('Fecha de Nacimiento: ${loginData!['fecha_nacimiento']}'),
-                    Text('Documento: ${loginData!['documento']}'),
-                    Text('Domicilio: ${loginData!['domicilio']}'),
-                    Text('NIT: ${loginData!['nit']}'),
-                    Text('Razón Social: ${loginData!['razon_social']}'),
-                    Text('Tipo Documento: ${loginData!['tipo_documento']}'),
-                    Text('Expedido: ${loginData!['expedido']}'),
-                    if (loginData!['expedienteclinico'] != null) ...[
-                      Text('Expediente Clínico ID: ${loginData!['expedienteclinico']['id']}'),
-                      Text('Teléfono: ${loginData!['expedienteclinico']['telefono']}'),
-                      Text('Email: ${loginData!['expedienteclinico']['email']}'),
-                      Text('Procedencia País: ${loginData!['expedienteclinico']['procedencia_pais']}'),
-                      Text('Residencia Departamento: ${loginData!['expedienteclinico']['residencia_departamento']}'),
-                      Text('Referencia: ${loginData!['expedienteclinico']['referencia']}'),
-                      Text('PIN App: ${loginData!['expedienteclinico']['pin_app']}'),
+              ? Form(
+                  key: _formKey,
+                  child: ListView(
+                    padding: const EdgeInsets.all(24.0),
+                    children: [
+                      _buildTextField(_nombresController, 'Nombres'),
+                      const SizedBox(height: 16),
+                      _buildTextField(_paternoController, 'Apellido Paterno'),
+                      const SizedBox(height: 16),
+                      _buildTextField(_maternoController, 'Apellido Materno'),
+                      const SizedBox(height: 16),
+                      _buildTextField(_domicilioController, 'Domicilio'),
+                      const SizedBox(height: 16),
+                      _buildTextField(_telefonoController, 'Teléfono', TextInputType.phone),
+                      const SizedBox(height: 16),
+                      _buildTextField(_emailController, 'Correo Electrónico', TextInputType.emailAddress),
+                      const SizedBox(height: 32),
+                      ElevatedButton(
+                        onPressed: isSaving ? null : _guardarDatos,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          backgroundColor: const Color.fromARGB(255, 1, 179, 45),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: isSaving
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text('Guardar Cambios', style: TextStyle(fontSize: 18, color: Colors.white)),
+                      ),
                     ],
-                    if (loginData!['asegurado'] != null) ...[
-                      Text('Asegurado ID: ${loginData!['asegurado']['id']}'),
-                      Text('Seguro: ${loginData!['asegurado']['seguro']}'),
-                      Text('Tipo de Asegurado: ${loginData!['asegurado']['tipo_asegurado']}'),
-                      Text('Código de Asegurado: ${loginData!['asegurado']['codigo_asegurado']}'),
-                      Text('Fecha de Afiliación: ${loginData!['asegurado']['fecha_afiliacion']}'),
-                    ],
-                  ],
+                  ),
                 )
               : const Center(
                   child: Text('No se pudieron obtener los datos.'),
                 ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label, [TextInputType keyboardType = TextInputType.text]) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        filled: true,
+        fillColor: Colors.grey.shade100,
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Por favor ingresa tu $label';
+        }
+        return null;
+      },
     );
   }
 }

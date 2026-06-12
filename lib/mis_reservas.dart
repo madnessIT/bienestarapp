@@ -21,6 +21,36 @@ class _MisReservasPageState extends State<MisReservasPage> {
   void initState() {
     super.initState();
     fetchAtenciones();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showReminderDialog();
+    });
+  }
+
+  void _showReminderDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Recordatorio Importante', style: TextStyle(fontWeight: FontWeight.bold)),
+          content: const Text(
+            'Estimado usuario, le recordamos la importancia de llegar 30 min antes de su cita médica y de dirigirse a enfermería para la medición de sus signos vitales.\n\nPor favor, no olvide llevar consigo su factura.',
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromARGB(255, 1, 179, 45),
+              ),
+              child: const Text('Entendido', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> fetchAtenciones() async {

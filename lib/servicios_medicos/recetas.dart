@@ -129,114 +129,177 @@ class _RecetasPageState extends State<RecetasPage> {
                         style: TextStyle(fontSize: 18, color: Colors.grey),
                       ),
                     )
-                  : _buildRecetaCard(ultimaReceta!),
+                  : Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 800),
+                        child: SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: _buildRecetaCard(ultimaReceta!),
+                        ),
+                      ),
+                    ),
     );
   }
 
   Widget _buildRecetaCard(Map<String, dynamic> receta) {
-  final detalles = receta['detalles'] as List<dynamic>?;
+    final detalles = receta['detalles'] as List<dynamic>?;
 
-  return Padding(
-    padding: const EdgeInsets.all(16.0),
-    child: Card(
-      elevation: 8,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      color: Colors.white,
-      shadowColor: Colors.grey.withOpacity(0.4),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Última Receta',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF2C3E50),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+      child: Card(
+        elevation: 6,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        color: Colors.white,
+        shadowColor: Colors.black26,
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF27AE60).withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.receipt_long,
+                      color: Color(0xFF27AE60),
+                      size: 32,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  const Expanded(
+                    child: Text(
+                      'Última Receta Médica',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF2C3E50),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                const Icon(
-                  Icons.medication,
-                  color: Color(0xFF27AE60),
-                  size: 30,
+              const SizedBox(height: 24),
+              _buildInfoRow('ID de receta:', receta['id']?.toString() ?? 'No disponible'),
+              const SizedBox(height: 12),
+              _buildInfoRow('Fecha de Creación:', receta['fecha_creacion']?.split('T')[0] ?? 'No disponible'),
+              const SizedBox(height: 24),
+              const Divider(thickness: 1.5),
+              const SizedBox(height: 16),
+              const Text(
+                'Medicamentos Recetados',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2980B9),
                 ),
-                const SizedBox(width: 10),
-                Text(
-                  'ID: ${receta['id'] ?? 'No disponible'}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.black54,
-                    fontWeight: FontWeight.w500,
+              ),
+              const SizedBox(height: 16),
+              if (detalles != null && detalles.isNotEmpty)
+                ...detalles.asMap().entries.map((entry) {
+                  return Column(
+                    children: [
+                      _buildDetalleRow(entry.value),
+                      if (entry.key != detalles.length - 1)
+                        const Divider(height: 24, color: Colors.black12),
+                    ],
+                  );
+                })
+              else
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'No hay detalles disponibles en esta receta.',
+                      style: TextStyle(fontSize: 16, color: Colors.black54),
+                    ),
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'Fecha de Creación: ${receta['fecha_creacion']?.split('T')[0] ?? 'No disponible'}',
-              style: const TextStyle(fontSize: 16, color: Colors.black54),
-            ),
-            const SizedBox(height: 15),
-            const Text(
-              'Detalles:',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF2980B9),
-              ),
-            ),
-            const SizedBox(height: 12),
-            if (detalles != null && detalles.isNotEmpty)
-              ...detalles.map((detalle) => _buildDetalleRow(detalle))
-            else
-              const Padding(
-                padding: EdgeInsets.only(top: 8.0),
-                child: Text(
-                  'No hay detalles disponibles.',
-                  style: TextStyle(fontSize: 16, color: Colors.black54),
-                ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
-Widget _buildDetalleRow(Map<String, dynamic> detalle) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 8.0),
-    child: Row(
+  Widget _buildInfoRow(String title, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Icon(
-          Icons.medication, // Use the medication icon
-          color: Color(0xFF8E44AD),
-          size: 24,
+        Text(
+          title,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
         Expanded(
           child: Text(
-            detalle['nombre_generico'] ?? 'No disponible',
+            value,
+            style: const TextStyle(fontSize: 16, color: Colors.black54),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDetalleRow(Map<String, dynamic> detalle) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const Icon(
+          Icons.medication_liquid,
+          color: Color(0xFF8E44AD),
+          size: 32,
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                detalle['nombre_generico'] ?? 'No disponible',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF34495E),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Indicaciones: ${detalle['indicaciones'] ?? 'No especificadas'}',
+                style: const TextStyle(fontSize: 14, color: Colors.black54),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 16),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xFF27AE60).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFF27AE60).withOpacity(0.3)),
+          ),
+          child: Text(
+            'Cant: ${detalle['cantidad']?.toString() ?? '-'}',
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF34495E),
+              color: Color(0xFF27AE60),
             ),
           ),
         ),
-        const SizedBox(width: 8),
-        Text(
-          'Cantidad: ${detalle['cantidad']?.toString() ?? 'No disponible'}',
-          style: const TextStyle(fontSize: 16, color: Color(0xFF27AE60)),
-        ),
       ],
-    ),
-  );
-}
+    );
+  }
 
 
 }
