@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'expediente_provider.dart';
 
@@ -117,13 +118,7 @@ class _FacturasPageState extends State<FacturasPage> {
                                           style: TextStyle(fontWeight: FontWeight.bold)),
                                       TextSpan(text: '${factura['nit'] ?? 'No disponible'}'),
                                     ])),
-                                    if (factura['cuf'] != null)
-                                      Text.rich(TextSpan(children: [
-                                        const TextSpan(
-                                            text: 'CUF: ',
-                                            style: TextStyle(fontWeight: FontWeight.bold)),
-                                        TextSpan(text: '${factura['cuf']}'),
-                                      ])),
+
                                     if (factura['monto_total'] != null)
                                       Text.rich(TextSpan(children: [
                                         const TextSpan(
@@ -131,7 +126,42 @@ class _FacturasPageState extends State<FacturasPage> {
                                             style: TextStyle(fontWeight: FontWeight.bold)),
                                         TextSpan(text: 'Bs ${factura['monto_total']}'),
                                       ])),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 12),
+                                    ElevatedButton.icon(
+                                      onPressed: () async {
+                                        final messenger = ScaffoldMessenger.of(context);
+                                        final String cuf = factura['cuf']?.toString() ?? '';
+                                        final String numero = factura['numero_comprobante']?.toString() ?? '';
+                                        if (cuf.isNotEmpty) {
+                                          final String urlStr =
+                                              'https://siat.impuestos.gob.bo/consulta/QR?nit=1006987025&cuf=$cuf&numero=$numero&t=1';
+                                          final Uri url = Uri.parse(urlStr);
+                                          if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                                            messenger.showSnackBar(
+                                              const SnackBar(content: Text('No se pudo abrir la URL de impuestos.')),
+                                            );
+                                          }
+                                        } else {
+                                          messenger.showSnackBar(
+                                            const SnackBar(content: Text('Esta factura no cuenta con CUF registrado.')),
+                                          );
+                                        }
+                                      },
+                                      icon: const Icon(Icons.receipt_long, color: Colors.white),
+                                      label: const Text(
+                                        'Ver Factura',
+                                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color.fromARGB(255, 0, 62, 143),
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                        minimumSize: const Size(double.infinity, 44),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
                                   ],
                                 ),
                               ),

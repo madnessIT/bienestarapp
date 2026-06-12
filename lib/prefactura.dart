@@ -1,19 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'dart:typed_data';
 import 'sucursal_provider.dart';
 import 'servicio_provider.dart';
 import 'expediente_provider.dart';
-import 'package:flutter/rendering.dart';
-import 'dart:ui' as ui;
-
-
-// Importación condicional para la descarga:
-// En web se utilizará download_helper_web.dart, y en Android u otras, download_helper_mobile.dart.
-import 'download_helper_mobile.dart'
-    if (dart.library.html) 'download_helper_web.dart';
+import 'download_helper.dart';
 
 class PrefacturaPage extends StatefulWidget {
   const PrefacturaPage({super.key});
@@ -421,25 +414,14 @@ class _QRResponsePageState extends State<QRResponsePage> {
 
   Future<void> _captureAndDownloadQR() async {
     try {
-      RenderRepaintBoundary boundary =
-          _qrKey.currentContext?.findRenderObject() as RenderRepaintBoundary;
-
-      if (boundary.debugNeedsPaint) {
-        await Future.delayed(const Duration(milliseconds: 20));
-        return _captureAndDownloadQR(); // Espera a que termine el render
-      }
-
-      final image = await boundary.toImage(pixelRatio: 3.0);
-      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      final bytes = byteData!.buffer.asUint8List();
-      await downloadImage(bytes);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('QR descargado correctamente')),
-      );
+      final Uint8List imageData = base64Decode(widget.qrResponse['imagen']);
+      await saveQRImage(imageData, context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al descargar: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al guardar: $e')),
+        );
+      }
     }
   }
 

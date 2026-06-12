@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace "com.example.app_pacientes"
-    compileSdk = 35
+    compileSdk = 36
     buildToolsVersion "35.0.0"
 
     compileOptions {
@@ -29,6 +29,9 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.debug
+            minifyEnabled false
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }
