@@ -24,6 +24,7 @@ import '/servicios_medicos/signos_vitales.dart';
 import '/servicios_medicos/laboratorios.dart';
 import '/servicios_medicos/captura_hibrida.dart';
 import '/prefactura.dart';
+import 'resumen_servicios_page.dart';
 
 void main()  {
   runApp(
@@ -70,6 +71,7 @@ class MyApp extends StatelessWidget {
         '/servicios_medicos/captura_hibrida': (context) => const CapturaHibridaHistorialPage(),
         '/servicios_medicos/pap': (context) =>  const PapPage(),
         '/prefactura': (context) =>  const PrefacturaPage(),
+        '/resumen_servicios': (context) => const ResumenServiciosPage(),
         //'/QRResponsePage': (context) =>  const QRResponsePage(),
 
       },

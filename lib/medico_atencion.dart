@@ -223,10 +223,20 @@ class _MedicoAtencionPageState extends State<MedicoAtencionPage> {
       floatingActionButton: turnoSeleccionado != null
           ? FloatingActionButton.extended(
               onPressed: () {
+                final item = {
+                  ...turnoSeleccionado!,
+                  'servicioId': Provider.of<ServicioProvider>(context, listen: false).servicioId,
+                  'servicioNombre': Provider.of<ServicioProvider>(context, listen: false).servicioNombre,
+                  'servicioCodigo': Provider.of<ServicioProvider>(context, listen: false).servicioCodigo,
+                  'sucursalDescripcion': Provider.of<SucursalProvider>(context, listen: false).descripcion,
+                  'sucursalCodigo': Provider.of<SucursalProvider>(context, listen: false).codigo,
+                  'sucursalId': Provider.of<SucursalProvider>(context, listen: false).id,
+                };
+                Provider.of<ServicioProvider>(context, listen: false).agregarServicioAlCarrito(item);
+                
                 Navigator.pushNamed(
                   context,
-                  '/prefactura',
-                  arguments: turnoSeleccionado,
+                  '/resumen_servicios',
                 );
               },
               label: const Text('Continuar'),

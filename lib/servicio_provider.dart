@@ -33,4 +33,26 @@ class ServicioProvider with ChangeNotifier {
     _servicioId = id; // Asignar el mismo valor a servicioId
     notifyListeners();
   }
+
+  // --- Manejo del Carrito de Servicios ---
+  final List<Map<String, dynamic>> _serviciosCarrito = [];
+
+  List<Map<String, dynamic>> get serviciosCarrito => _serviciosCarrito;
+
+  void agregarServicioAlCarrito(Map<String, dynamic> item) {
+    _serviciosCarrito.add(item);
+    notifyListeners();
+  }
+
+  void eliminarServicioDelCarrito(int index) {
+    if (index >= 0 && index < _serviciosCarrito.length) {
+      _serviciosCarrito.removeAt(index);
+      notifyListeners();
+    }
+  }
+
+  void limpiarCarrito() {
+    _serviciosCarrito.clear();
+    notifyListeners();
+  }
 }

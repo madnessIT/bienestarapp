@@ -25,33 +25,46 @@ class PrefacturaPage extends StatefulWidget {
 class _PrefacturaPageState extends State<PrefacturaPage> {
   bool _isGeneratingQR = false;
 
-  Future<List<dynamic>> fetchServicios(String servicioNombre, String regionalCodigo) async {
-    final url =
-      //'http://test.api.movil.cies.org.bo/administracion/servicios/all/?search=$servicioNombre&regional=$regionalCodigo';
-      'https://api.movil.cies.org.bo/administracion/servicios/all/?search=$servicioNombre&regional=$regionalCodigo';
-    final headers = {
-      //"regional": regionalCodigo,  // Comentado
-      "Content-Type": "application/json",
-    };
-    final response = await http.get(Uri.parse(url), headers: headers);
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Error al cargar los servicios: ${response.statusCode}');
+  Future<List<Map<String, dynamic>>> fetchPricesForCart(List<Map<String, dynamic>> carrito) async {
+    List<Map<String, dynamic>> cartWithPrices = [];
+    for (var item in carrito) {
+      final servicioNombre = item['servicioNombre'];
+      final regionalCodigo = item['sucursalCodigo'];
+      
+      final url = 'https://api.movil.cies.org.bo/administracion/servicios/all/?search=$servicioNombre&regional=$regionalCodigo';
+      final headers = {"Content-Type": "application/json"};
+      
+      try {
+        final response = await http.get(Uri.parse(url), headers: headers);
+        if (response.statusCode == 200) {
+          final List<dynamic> result = json.decode(response.body);
+          if (result.isNotEmpty) {
+            final selectedService = result.first;
+            final precio = selectedService['precio'] is Map
+                ? selectedService['precio']['precio']
+                : selectedService['precio'];
+            
+            cartWithPrices.add({
+              ...item,
+              'precioFinal': precio,
+              'codigo_backend': selectedService['codigo'],
+            });
+          } else {
+            cartWithPrices.add({...item, 'precioFinal': 0, 'codigo_backend': item['servicioCodigo']});
+          }
+        } else {
+          throw Exception('Error al cargar precio para $servicioNombre');
+        }
+      } catch (e) {
+        cartWithPrices.add({...item, 'precioFinal': 0, 'codigo_backend': item['servicioCodigo']});
+      }
     }
+    return cartWithPrices;
   }
 
   @override
   Widget build(BuildContext context) {
-    final Map<String, dynamic>? turnoSeleccionado =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-
-    final medico = turnoSeleccionado?['medico'] ?? 'No disponible';
-    final fecha = turnoSeleccionado?['fecha'] ?? 'No disponible';
-    final horaInicio = turnoSeleccionado?['hora_inicio'] ?? 'No disponible';
-    final horaFin = turnoSeleccionado?['hora_fin'] ?? 'No disponible';
-    final id = turnoSeleccionado?['id'] ?? 'No disponible';
-    final doctorId = turnoSeleccionado?['doctorId'] ?? 'No disponible';
+    // Eliminamos la lectura de ModalRoute ya que usaremos el Provider
 
     return Scaffold(
       appBar: AppBar(
@@ -84,8 +97,10 @@ class _PrefacturaPageState extends State<PrefacturaPage> {
             text: expedienteProvider.razonSocial ?? 'No asignado',
           );
 
-          return FutureBuilder<List<dynamic>>(
-            future: fetchServicios(servicioProvider.servicioNombre, sucursalProvider.codigo),
+          final carrito = servicioProvider.serviciosCarrito;
+
+          return FutureBuilder<List<Map<String, dynamic>>>(
+            future: fetchPricesForCart(carrito),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -126,169 +141,210 @@ class _PrefacturaPageState extends State<PrefacturaPage> {
                           ),
                           const SizedBox(height: 24),
                           _buildSectionTitle(context, 'Datos Para la Reserva:'),
-                          ...servicios.map((servicio) => _buildServicioCard(
-                                servicio,
-                                fecha,
-                                horaInicio,
-                                horaFin,
-                                medico,
-                                sucursalProvider.descripcion,
+                          ...servicios.map((item) => _buildServicioCard(
+                                item,
                               )),
                           const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: _isGeneratingQR
-                                ? null
-                                : () async {
-                                    setState(() {
-                                      _isGeneratingQR = true;
-                                    });
-                                    final selectedService = servicios.first;
-                                    final patientId = expedienteProvider.PatientId ?? 0;
-                                    //print('Código de sucursal: ${sucursalProvider.codigo}');
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              ElevatedButton(
+                                onPressed: _isGeneratingQR
+                                    ? null
+                                    : () async {
+                                        setState(() {
+                                          _isGeneratingQR = true;
+                                        });
+                                        final patientId = expedienteProvider.PatientId ?? 0;
+                                        // Utilizaremos el id de la sucursal del primer elemento como regional principal (generalmente será la misma)
+                                        final mainRegionalId = carrito.isNotEmpty ? carrito.first['sucursalId'] : sucursalProvider.id;
+                                        final mainSucursalCodigo = carrito.isNotEmpty ? carrito.first['sucursalCodigo'] : sucursalProvider.codigo;
 
-                                    final preFacturaPayload = {
-                                      "paciente": patientId,
-                                      "razon_social": razonSocialController.text,
-                                      "nit": nitController.text,
-                                      "sistema": "APP",
-                                      "regional": sucursalProvider.id,
-                                      "registrado_por": 2899,
-                                      "detalle": [
-                                        {
-                                          "cantidad": 1,
-                                          "codigo": servicioProvider.servicioCodigo,
-                                          "descripcion": servicioProvider.servicioNombre,
-                                          "precio": selectedService['precio'] is Map
-                                              ? selectedService['precio']['precio']
-                                              : selectedService['precio'],
-                                          "referencia": doctorId,
-                                          "es_emergencia": false,
-                                          "turno": id,
-                                        }
-                                      ]
-                                    };
+                                        List<Map<String, dynamic>> detalles = [];
+                                        double montoTotal = 0;
+                                        String glosaDescripcion = "";
 
-                                    //print('Payload pre-factura enviado: $preFacturaPayload');
-                                    //final preFacturaUrl = 'http://test.api.movil.cies.org.bo/facturacion/pre_factura/?regional=${sucursalProvider.codigo}';
-                                    final preFacturaUrl = 'https://api.movil.cies.org.bo/facturacion/pre_factura/?regional=${sucursalProvider.codigo}';
-                                    try {
-                                      final preFacturaResponse = await http.post(
-                                        Uri.parse(preFacturaUrl),
-                                        headers: {
-                                          "Content-Type": "application/json",
-                                          //"regional": sucursalProvider.codigo,
-                                        },
-                                        body: jsonEncode(preFacturaPayload),
-                                      );
+                                        for (var item in servicios) {
+                                          double precioItem = double.tryParse(item['precioFinal'].toString()) ?? 0;
+                                          montoTotal += precioItem;
+                                          glosaDescripcion += "${item['servicioNombre']} ";
 
-                                     // print('Respuesta de pre-factura: ${preFacturaResponse.body}');
-
-                                      if (preFacturaResponse.statusCode == 200 || preFacturaResponse.statusCode == 201) {
-                                        final preFacturaData = jsonDecode(preFacturaResponse.body);
-
-                                        final id = preFacturaData['id'];
-                                        final descripcion = preFacturaData['descripcion'] ?? servicioProvider.servicioNombre;
-                                        final codigo = selectedService['codigo'];
-                                        final precio = selectedService['precio'] is Map
-                                            ? selectedService['precio']['precio']
-                                            : selectedService['precio'];
-
-                                        // --- Sección de generación de QR ---
-                                        // Obtener valores dinámicos según sucursal
-                                        String sucursal = sucursalProvider.codigo;
-                                        int regional = sucursal == "03" ? 8 : sucursal == "14" ? 9 : 0;
-
-                                        if (regional == 0) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Sucursal no válida para generación de QR')),
-                                          );
-                                          return;
+                                          detalles.add({
+                                            "cantidad": 1,
+                                            "codigo": item['codigo_backend'],
+                                            "descripcion": item['servicioNombre'],
+                                            "precio": precioItem,
+                                            "referencia": item['doctorId'],
+                                            "es_emergencia": false,
+                                            "turno": item['id'],
+                                          });
                                         }
 
-                                        // Crear payload según el regional
-                                        final qrPayload = {
-                                          "numeroReferencia": id,
-                                          "glosa": regional == 8
-                                              ? "453015|TES SA API QR|8062|$descripcion $codigo"
-                                              : "453017|TES SA SATELITE API QR|8062|$descripcion $codigo",
-                                          "monto": precio,
-                                          "moneda": "BOB",
-                                          "canal": "APP",
-                                          "tiempoQr": "00:10:00"
+                                        final preFacturaPayload = {
+                                          "paciente": patientId,
+                                          "razon_social": razonSocialController.text,
+                                          "nit": nitController.text,
+                                          "sistema": "APP",
+                                          "regional": mainRegionalId,
+                                          "registrado_por": 2899,
+                                          "detalle": detalles
                                         };
 
-                                        // Imprimir el contenido de qrPayload
-                                         // print('Payload QR generado: $qrPayload');
-
-                                        // Construir URL del endpoint con regional y sucursal
-                                        final qrUrl =
-                                            //'http://test.api.movil.cies.org.bo/generarQR/?regional=$regional&sucursal=$sucursal';
-                                            'https://api.movil.cies.org.bo/generarQR/?regional=$regional&sucursal=$sucursal';
-
-                                        // Enviar solicitud POST
-                                        final qrResponse = await http.post(
-                                          Uri.parse(qrUrl),
-                                          headers: {
-                                            "Content-Type": "application/json",
-                                          },
-                                          body: jsonEncode(qrPayload),
-                                        );
-
-                                        //print('Respuesta de QR: ${qrResponse.body}');
-
-                                        if (qrResponse.statusCode == 200) {
-                                          // Navegar a QRResponsePage con datos
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => QRResponsePage(
-                                                qrResponse: jsonDecode(qrResponse.body),
-                                                sucursal: sucursal,
-                                                regional: regional,
-                                              ),
-                                            ),
+                                        //print('Payload pre-factura enviado: $preFacturaPayload');
+                                        final preFacturaUrl = 'https://api.movil.cies.org.bo/facturacion/pre_factura/?regional=$mainSucursalCodigo';
+                                        try {
+                                          final preFacturaResponse = await http.post(
+                                            Uri.parse(preFacturaUrl),
+                                            headers: {
+                                              "Content-Type": "application/json",
+                                            },
+                                            body: jsonEncode(preFacturaPayload),
                                           );
-                                        } else {
+
+                                          if (preFacturaResponse.statusCode == 200 || preFacturaResponse.statusCode == 201) {
+                                            final preFacturaData = jsonDecode(preFacturaResponse.body);
+
+                                            final id = preFacturaData['id'];
+
+                                            // --- Sección de generación de QR ---
+                                            // Obtener valores dinámicos según sucursal
+                                            String sucursal = mainSucursalCodigo;
+                                            int regional = sucursal == "03" ? 8 : sucursal == "14" ? 9 : 0;
+
+                                            if (regional == 0) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(content: Text('Sucursal no válida para generación de QR')),
+                                              );
+                                              return;
+                                            }
+
+                                            // Crear payload según el regional
+                                            final qrPayload = {
+                                              "numeroReferencia": id,
+                                              "glosa": regional == 8
+                                                  ? "453015|TES SA API QR|8062|$glosaDescripcion"
+                                                  : "453017|TES SA SATELITE API QR|8062|$glosaDescripcion",
+                                              "monto": montoTotal,
+                                              "moneda": "BOB",
+                                              "canal": "APP",
+                                              "tiempoQr": "00:10:00"
+                                            };
+
+                                            // Imprimir el contenido de qrPayload
+                                             // print('Payload QR generado: $qrPayload');
+
+                                            // Construir URL del endpoint con regional y sucursal
+                                            final qrUrl =
+                                                //'http://test.api.movil.cies.org.bo/generarQR/?regional=$regional&sucursal=$sucursal';
+                                                'https://api.movil.cies.org.bo/generarQR/?regional=$regional&sucursal=$sucursal';
+
+                                            // Enviar solicitud POST
+                                            final qrResponse = await http.post(
+                                              Uri.parse(qrUrl),
+                                              headers: {
+                                                "Content-Type": "application/json",
+                                              },
+                                              body: jsonEncode(qrPayload),
+                                            );
+
+                                            //print('Respuesta de QR: ${qrResponse.body}');
+
+                                            if (qrResponse.statusCode == 200) {
+                                              // Navegar a QRResponsePage con datos
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => QRResponsePage(
+                                                    qrResponse: jsonDecode(qrResponse.body),
+                                                    sucursal: sucursal,
+                                                    regional: regional,
+                                                  ),
+                                                ),
+                                              );
+                                            } else {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(content: Text('Error al generar el código QR')),
+                                              );
+                                            }
+                                          } else {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(content: Text('Error al generar la pre-factura')),
+                                            );
+                                          }
+                                        } catch (e) {
+                                          print('Excepción en pre-factura: $e');
                                           ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Error al generar el código QR')),
+                                            SnackBar(content: Text('Excepción: $e')),
                                           );
+                                        } finally {
+                                          if (mounted) {
+                                            setState(() {
+                                              _isGeneratingQR = false;
+                                            });
+                                          }
                                         }
-                                      } else {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('Error al generar la pre-factura')),
-                                        );
-                                      }
-                                    } catch (e) {
-                                      print('Excepción en pre-factura: $e');
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('Excepción: $e')),
-                                      );
-                                    } finally {
-                                      if (mounted) {
-                                        setState(() {
-                                          _isGeneratingQR = false;
-                                        });
-                                      }
-                                    }
-                                  },
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
-                              textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                              backgroundColor: const Color.fromARGB(255, 1, 179, 45),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
+                                      },
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+                                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                  backgroundColor: const Color.fromARGB(255, 1, 179, 45),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                child: _isGeneratingQR
+                                    ? const SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Text('Continuar'),
                               ),
-                            ),
-                            child: _isGeneratingQR
-                                ? const SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : const Text('Continuar'),
+                              const SizedBox(height: 12),
+                              OutlinedButton.icon(
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: const Text('Cancelar Reserva'),
+                                        content: const Text('¿Estás seguro que deseas cancelar la reserva y volver al inicio? Todos los servicios seleccionados se perderán.'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context); // Cerrar el diálogo
+                                            },
+                                            child: const Text('No, continuar'),
+                                          ),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              Provider.of<ServicioProvider>(context, listen: false).limpiarCarrito();
+                                              Navigator.popUntil(context, ModalRoute.withName('/menu_paciente'));
+                                            },
+                                            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                            child: const Text('Sí, cancelar', style: TextStyle(color: Colors.white)),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                                icon: const Icon(Icons.cancel),
+                                label: const Text('Cancelar Reserva'),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  foregroundColor: Colors.red,
+                                  side: const BorderSide(color: Colors.red),
+                                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -313,8 +369,8 @@ class _PrefacturaPageState extends State<PrefacturaPage> {
     );
   }
 
-  Widget _buildServicioCard(Map<String, dynamic> servicio, String fecha, String horaInicio, String horaFin, String medico, String sucursalDescripcion) {
-    final precio = servicio['precio'] ?? 'No disponible';
+  Widget _buildServicioCard(Map<String, dynamic> item) {
+    final precio = item['precioFinal'] ?? '0';
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -329,13 +385,13 @@ class _PrefacturaPageState extends State<PrefacturaPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Sucursal: $sucursalDescripcion', style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text('Sucursal: ${item['sucursalDescripcion']}', style: const TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              Text('${servicio['nombre']}', style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text('Precio: ${precio['precio']} Bs.'),
-              Text('Médico: $medico'),
-              Text('Fecha: $fecha'),
-              Text('Hora: $horaInicio - $horaFin'),
+              Text('${item['servicioNombre']}', style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text('Precio: $precio Bs.'),
+              Text('Médico: ${item['medico']}'),
+              Text('Fecha: ${item['fecha']}'),
+              Text('Hora: ${item['hora_inicio']} - ${item['hora_fin']}'),
             ],
           ),
         ),
