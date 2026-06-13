@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'expediente_provider.dart';
 
 class MenuPacientePage extends StatelessWidget {
   const MenuPacientePage({super.key});
@@ -133,8 +135,11 @@ class MenuPacientePage extends StatelessWidget {
                     const SizedBox(height: 20),
                     // Botón para cerrar sesión
                     ElevatedButton(
-                      onPressed: () {
-                        Navigator.popUntil(context, ModalRoute.withName('/login'));
+                      onPressed: () async {
+                        await Provider.of<ExpedienteProvider>(context, listen: false).cerrarSesion();
+                        if (context.mounted) {
+                          Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),

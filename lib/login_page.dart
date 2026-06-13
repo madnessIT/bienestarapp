@@ -18,6 +18,7 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   bool _pinSent = false;
   bool _showRegister = false;
+  bool _isCheckingSession = true;
 
   String? _backendPin;
   String? _nombre;
@@ -29,6 +30,39 @@ class _LoginPageState extends State<LoginPage> {
   String? _infoMessage;
 
   final String apiUrl = 'https://api.movil.cies.org.bo/afiliacion/login_codigo_tes/';
+
+  @override
+  void initState() {
+    super.initState();
+    _checkActiveSession();
+  }
+
+  Future<void> _checkActiveSession() async {
+    try {
+      final expedienteProvider = Provider.of<ExpedienteProvider>(context, listen: false);
+      final patientData = await expedienteProvider.cargarSesion();
+      if (patientData != null && mounted) {
+        Navigator.pushReplacementNamed(
+          context,
+          '/menu_paciente',
+          arguments: patientData,
+        );
+      } else {
+        if (mounted) {
+          setState(() {
+            _isCheckingSession = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isCheckingSession = false;
+          _errorMessage = 'Error al cargar la sesión: $e';
+        });
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -106,7 +140,7 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void _confirmPin() {
+  Future<void> _confirmPin() async {
     final pin = _pinController.text.trim();
 
     if (pin.isEmpty) {
@@ -115,16 +149,31 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     if (pin == _backendPin) {
-      Navigator.pushNamed(
-        context,
-        '/menu_paciente',
-        arguments: {
-          'nombre': _nombre,
-          'paterno': _paterno,
-          'materno': _materno,
-          'ci': _ci,
-        },
+      final expedienteProvider = Provider.of<ExpedienteProvider>(context, listen: false);
+      await expedienteProvider.guardarSesion(
+        patientId: expedienteProvider.PatientId ?? 0,
+        expedienteclinicoId: expedienteProvider.expedienteclinicoId ?? 0,
+        expedienteClinico: expedienteProvider.expedienteClinico ?? 0,
+        nit: expedienteProvider.nit,
+        razonSocial: expedienteProvider.razonSocial,
+        documento: expedienteProvider.documento,
+        nombre: _nombre,
+        paterno: _paterno,
+        materno: _materno,
       );
+
+      if (mounted) {
+        Navigator.pushReplacementNamed(
+          context,
+          '/menu_paciente',
+          arguments: {
+            'nombre': _nombre,
+            'paterno': _paterno,
+            'materno': _materno,
+            'ci': _ci,
+          },
+        );
+      }
     } else {
       setState(() => _errorMessage = 'PIN incorrecto');
     }
@@ -132,6 +181,14 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isCheckingSession) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(

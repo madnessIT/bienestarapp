@@ -6,33 +6,40 @@ class ContactanosPage extends StatelessWidget {
   const ContactanosPage({super.key});
 
   // Métodos para abrir los enlaces
- Future<void> _launchFacebook() async {
-  final Uri url = Uri.parse('https://www.facebook.com/ClinicaBienestarSalud');
-  if (await canLaunchUrl(url)) {
-    await launchUrl(url, mode: LaunchMode.externalApplication);
-  } else {
-    debugPrint('No se pudo abrir el enlace a Facebook');
-    // Aquí puedes mostrar un mensaje al usuario
-  }
-}
-
-
-  Future<void> _launchWhatsApp() async {
-    final Uri url = Uri.parse('https://wa.me/59169805848');
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
-      throw 'No se pudo abrir el enlace a WhatsApp';
+  Future<void> _launch(BuildContext context, String urlString, String errorMessage) async {
+    final Uri url = Uri.parse(urlString);
+    try {
+      final bool launched = await launchUrl(url, mode: LaunchMode.externalApplication);
+      if (!launched && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
-  Future<void> _launchWebsite() async {
-    final Uri url = Uri.parse('https://clinicabienestar.tes.com.bo/');
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
-      throw 'No se pudo abrir el enlace al sitio web';
-    }
+  Future<void> _launchFacebook(BuildContext context) async {
+    await _launch(context, 'https://www.facebook.com/ClinicaBienestarSalud', 'No se pudo abrir el enlace a Facebook');
+  }
+
+  Future<void> _launchWhatsApp(BuildContext context) async {
+    await _launch(context, 'https://wa.me/59169805848', 'No se pudo abrir el enlace a WhatsApp');
+  }
+
+  Future<void> _launchWebsite(BuildContext context) async {
+    await _launch(context, 'https://clinicabienestar.tes.com.bo/', 'No se pudo abrir el sitio web');
   }
 
   @override
@@ -93,21 +100,21 @@ class ContactanosPage extends StatelessWidget {
                     iconColor: Colors.blue,
                     title: 'Facebook',
                     subtitle: 'Visítanos en Facebook',
-                    onTap: _launchFacebook,
+                    onTap: () => _launchFacebook(context),
                   ),
                   _buildContactTile(
                     icon: FontAwesomeIcons.whatsapp,
                     iconColor: Colors.green,
                     title: 'WhatsApp',
                     subtitle: 'Chatea con nosotros en WhatsApp',
-                    onTap: _launchWhatsApp,
+                    onTap: () => _launchWhatsApp(context),
                   ),
                   _buildContactTile(
                     icon: FontAwesomeIcons.globe,
                     iconColor: Colors.blueAccent,
                     title: 'Sitio Web',
                     subtitle: 'Visita nuestro sitio web',
-                    onTap: _launchWebsite,
+                    onTap: () => _launchWebsite(context),
                   ),
                 ],
               ),
