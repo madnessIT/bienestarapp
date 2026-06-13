@@ -363,30 +363,72 @@ class _PrefacturaPageState extends State<PrefacturaPage> {
   }
 
   Widget _buildServicioCard(Map<String, dynamic> item) {
-    final precio = item['precioFinal'] ?? '0';
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Card(
-        elevation: 3,
-        margin: const EdgeInsets.symmetric(vertical: 8.0),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Sucursal: ${item['sucursalDescripcion']}', style: const TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              Text('${item['servicioNombre']}', style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text('Precio: $precio Bs.'),
-              Text('Médico: ${item['medico']}'),
-              Text('Fecha: ${item['fecha']}'),
-              Text('Hora: ${item['hora_inicio']} - ${item['hora_fin']}'),
-            ],
-          ),
+    return Card(
+      elevation: 4,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              radius: 24,
+              backgroundColor: const Color.fromARGB(255, 1, 179, 45).withValues(alpha: 0.1),
+              child: const Icon(Icons.medical_services, color: Color.fromARGB(255, 1, 179, 45)),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item['servicioNombre'] ?? 'Servicio',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(255, 0, 62, 143),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Médico: ${item['medico']}',
+                    style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
+                  ),
+                  Text(
+                    'Fecha: ${item['fecha']}',
+                    style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
+                  ),
+                  Text(
+                    'Hora: ${item['hora_inicio']} - ${item['hora_fin']}',
+                    style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
+                  ),
+                  Text(
+                    'Sucursal: ${item['sucursalDescripcion']}',
+                    style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 1, 179, 45).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '${item['precioFinal'] ?? 0} BOB',
+                      style: const TextStyle(
+                        color: Color.fromARGB(255, 1, 179, 45),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

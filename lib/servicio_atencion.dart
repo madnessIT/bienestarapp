@@ -142,10 +142,6 @@ class _ServiciosAtencionPageState extends State<ServiciosAtencionPage> {
                                           servicio['nombre'],
                                           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                         ),
-                                        subtitle: Text(
-                                          servicio['codigo'] ?? 'Sin Código',
-                                          style: const TextStyle(color: Colors.grey),
-                                        ),
                                         trailing: const Icon(Icons.arrow_forward_ios, color: Colors.blueAccent),
                                         onTap: () {
                                           if (especialidades.isNotEmpty) {
